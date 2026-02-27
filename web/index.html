@@ -30,8 +30,7 @@
 
     table {
       border-collapse: collapse;
-      width: 100%;
-      min-width: 600px;
+      width: auto;
     }
 
     /* Sticky header */
@@ -69,13 +68,14 @@
     tbody tr.data-row:hover { filter: brightness(1.2); }
 
     td {
-      padding: 3px 6px;
+      padding: 3px 8px;
       text-align: center;
       font-weight: 700;
       font-size: 0.8rem;
       white-space: nowrap;
       line-height: 1;
       height: 26px;
+      width: 1%;
     }
 
     td.hour {
@@ -84,9 +84,9 @@
       font-weight: 700;
       color: #90a4ae;
       background: #0a0a14 !important;
-      width: 52px;
       font-size: 0.75rem;
       border-right: 1px solid #1a1a2e;
+      white-space: nowrap;
     }
     td.hour .moon-mark { color: #3949ab; font-size: 0.6rem; margin-left: 2px; }
 
