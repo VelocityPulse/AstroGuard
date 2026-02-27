@@ -159,8 +159,17 @@ function tSeeing(v) { return v > 0 ? (v - 1) / 7 : null; }
 function tTransp(v) { return v > 0 ? (v - 1) / 7 : null; }
 
 function isNightHour(h) { return h >= 20 || h <= 5; }
-function isGood(cl, hu, wi, se) {
-  return cl <= THR.cloud && hu <= THR.humidity && wi <= THR.wind && se >= THR.seeing;
+
+// Seul critère éliminant : la couverture nuageuse totale
+function isGood(cl)    { return cl <= THR.cloud; }
+function isMaybe(cl)   { return cl <= 50; }
+
+// Illumination lunaire en % (0=nouvelle lune, 100=pleine lune)
+function moonIllumination(date) {
+  const known = new Date(2000, 0, 6); // nouvelle lune de référence
+  const phase = (((date - known) / 86400000) % 29.53059 + 29.53059) % 29.53059;
+  const angle = (phase / 29.53059) * 2 * Math.PI;
+  return Math.round((1 - Math.cos(angle)) / 2 * 100);
 }
 
 function moonPhase(date) {
@@ -179,6 +188,7 @@ const SUB_HEADER = `
     <td class="sep">Bas</td><td>Moy</td><td>Haut</td>
     <td class="sep">Total</td><td>Humidité</td><td>Vent</td>
     <td class="sep">Seeing</td><td>Transp.</td>
+    <td class="sep">🌙</td>
   </tr>`;
 
 async function fetchOpenMeteo() {
@@ -224,6 +234,7 @@ async function main() {
             <th colspan="3" class="sep">☁️ Nuages</th>
             <th colspan="3" class="sep">☁️ Open-Meteo</th>
             <th colspan="2" class="sep">⭐ 7timer</th>
+            <th rowspan="2" class="sep">🌙 Lune</th>
           </tr>
           <tr>
             <th class="sep">Bas</th><th>Moy</th><th>Haut</th>
@@ -243,7 +254,7 @@ async function main() {
 
       if (day !== lastDay) {
         const label = t.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-        html += `<tr class="day-header"><td colspan="10">📅 ${label}</td></tr>`;
+        html += `<tr class="day-header"><td colspan="11">📅 ${label}</td></tr>`;
         html += SUB_HEADER;
         lastDay = day;
       }
@@ -252,17 +263,22 @@ async function main() {
       const ad   = smap[key] || { seeing: 0, transparency: 0 };
       const cl   = clouds[i], cl_l = cLow[i], cl_m = cMid[i], cl_h = cHigh[i];
       const hu   = humid[i],  wi   = Math.round(wind[i]);
-      const se   = ad.seeing, tr   = ad.transparency;
-      const good = night && isGood(cl, hu, wi, se);
+      const se   = ad.seeing, tr = ad.transparency;
+      const illum = moonIllumination(t);
+      const good  = night && isGood(cl);
       const rowCls = night ? 'is-night' : 'is-day';
 
+      // Score basé uniquement sur les nuages
       const scoreHtml = !night
         ? `<span class="score-no">·</span>`
         : good
           ? `<span class="score-go">✅</span>`
-          : (cl <= 50 && se >= 2)
+          : isMaybe(cl)
             ? `<span class="score-maybe">▲</span>`
             : `<span class="score-no">✗</span>`;
+
+      // Couleur lune : vert si < 25%, orange si < 60%, rouge sinon
+      const moonColor = illum < 25 ? '#69f0ae' : illum < 60 ? '#ffd54f' : '#ef9a9a';
 
       const hourLabel = String(hr).padStart(2, '0') + 'h';
       const nightMark = night ? ` <span style="color:#3949ab;font-size:.6rem">🌙</span>` : '';
@@ -278,6 +294,7 @@ async function main() {
         <td style="${heatCell(tWind(wi), night)}">${wi}</td>
         <td class="sep" style="${heatCell(tSeeing(se), night)}">${se > 0 ? se+'/8' : '—'}</td>
         <td style="${heatCell(tTransp(tr), night)}">${tr > 0 ? tr+'/8' : '—'}</td>
+        <td class="sep" style="color:${moonColor};background:#090912">${night ? illum+'%' : '—'}</td>
       </tr>`;
     });
 
