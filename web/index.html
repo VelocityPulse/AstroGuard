@@ -8,7 +8,7 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      background: #0a0a12;
+      background: #07070f;
       color: #c9d1e0;
       font-family: 'Segoe UI', system-ui, sans-serif;
       padding: 24px;
@@ -18,159 +18,133 @@
       display: flex;
       align-items: center;
       gap: 12px;
-      margin-bottom: 28px;
+      margin-bottom: 24px;
     }
+    header h1 { font-size: 1.6rem; color: #e8eaf6; }
+    header .loc { font-size: 0.9rem; color: #5c6bc0; margin-left: 8px; }
 
-    header h1 {
-      font-size: 1.6rem;
-      color: #e8eaf6;
-    }
-
-    header span.loc {
-      font-size: 0.9rem;
+    .moon-info {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-bottom: 18px;
+      padding: 10px 16px;
+      background: #0f0f20;
+      border-radius: 10px;
+      border: 1px solid #1a1a30;
+      font-size: 0.85rem;
       color: #7986cb;
-      margin-left: 8px;
     }
+    .moon-info b { color: #e8eaf6; }
 
     .days-nav {
       display: flex;
       gap: 8px;
-      margin-bottom: 20px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
     }
-
     .days-nav button {
-      background: #1a1a2e;
-      border: 1px solid #2a2a4a;
-      color: #9fa8da;
-      padding: 6px 16px;
+      background: #0f0f20;
+      border: 1px solid #1e1e38;
+      color: #7986cb;
+      padding: 6px 18px;
       border-radius: 20px;
       cursor: pointer;
-      font-size: 0.85rem;
+      font-size: 0.84rem;
       transition: all 0.2s;
     }
-
-    .days-nav button.active, .days-nav button:hover {
-      background: #3949ab;
+    .days-nav button.active,
+    .days-nav button:hover {
+      background: #283593;
       border-color: #3949ab;
       color: #fff;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border-radius: 10px;
+      border: 1px solid #1a1a30;
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 0.88rem;
+      font-size: 0.875rem;
     }
 
     thead th {
-      background: #111128;
-      color: #7986cb;
-      padding: 10px 14px;
+      background: #0d0d1e;
+      color: #5c6bc0;
+      padding: 9px 12px;
       text-align: center;
       font-weight: 600;
-      font-size: 0.78rem;
+      font-size: 0.76rem;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
-      border-bottom: 2px solid #1e1e3a;
-      position: sticky;
-      top: 0;
+      letter-spacing: 0.06em;
+      border-bottom: 2px solid #1a1a30;
+      white-space: nowrap;
     }
+    thead th:first-child { text-align: left; padding-left: 14px; }
+    thead th.sep { border-left: 2px solid #1a1a30; }
 
-    thead th.source-header {
-      border-left: 2px solid #1e1e3a;
-    }
+    tbody tr { border-bottom: 1px solid #0f0f1e; transition: filter 0.1s; }
+    tbody tr:hover { filter: brightness(1.15); }
 
-    thead th:first-child { text-align: left; }
-
-    tbody tr {
-      border-bottom: 1px solid #111128;
-      transition: background 0.15s;
-    }
-
-    tbody tr:hover { background: #13132a; }
-
-    tbody tr.night-hour { background: #0d0d20; }
-    tbody tr.night-hour:hover { background: #14142e; }
-
-    tbody tr.good-window {
-      background: #0a1f14 !important;
-    }
-    tbody tr.good-window:hover { background: #0d2618 !important; }
-
-    tbody tr.good-window td:first-child {
-      border-left: 3px solid #4caf50;
-    }
+    tbody tr.dim td { opacity: 0.35; }
 
     td {
-      padding: 9px 14px;
+      padding: 8px 12px;
       text-align: center;
-      vertical-align: middle;
+      font-variant-numeric: tabular-nums;
+      font-weight: 600;
+      font-size: 0.85rem;
+      white-space: nowrap;
     }
-
     td:first-child {
       text-align: left;
-      font-weight: 600;
+      padding-left: 14px;
+      font-weight: 700;
       color: #e8eaf6;
-      white-space: nowrap;
-      border-left: 3px solid transparent;
+      background: #0d0d1e !important;
+      border-right: 1px solid #1a1a30;
+      position: sticky;
+      left: 0;
+      z-index: 1;
     }
-
-    td.night-badge {
-      font-size: 0.75rem;
-    }
-
-    .source-group {
-      border-left: 2px solid #1e1e3a;
-    }
-
-    .cell-good    { color: #81c784; font-weight: 600; }
-    .cell-ok      { color: #fff176; }
-    .cell-bad     { color: #ef9a9a; }
-    .cell-unknown { color: #555; }
+    td.sep { border-left: 2px solid #1a1a30; }
 
     .score {
       display: inline-block;
       padding: 3px 10px;
       border-radius: 12px;
       font-weight: 700;
-      font-size: 0.8rem;
+      font-size: 0.78rem;
+      letter-spacing: 0.03em;
     }
-    .score-go    { background: #1b5e20; color: #a5d6a7; }
-    .score-maybe { background: #f57f17; color: #fff9c4; }
-    .score-no    { background: #1a1a2e; color: #455a64; }
+    .score-go    { background: #1a3d22; color: #69f0ae; border: 1px solid #2e7d32; }
+    .score-maybe { background: #3e2900; color: #ffd54f; border: 1px solid #f57f17; }
+    .score-no    { background: #0f0f1e; color: #37474f; border: 1px solid #1a1a30; }
 
     .loader {
       text-align: center;
       padding: 60px;
       color: #3949ab;
-      font-size: 1.1rem;
     }
-
-    .moon-info {
-      display: flex;
-      gap: 20px;
-      margin-bottom: 20px;
-      padding: 12px 16px;
-      background: #111128;
-      border-radius: 10px;
-      border: 1px solid #1e1e3a;
-      font-size: 0.85rem;
-      color: #9fa8da;
-    }
-
-    .moon-info span { color: #e8eaf6; font-weight: 600; }
 
     .legend {
       display: flex;
-      gap: 16px;
-      margin-top: 16px;
+      gap: 20px;
+      margin-top: 14px;
       font-size: 0.78rem;
       color: #546e7a;
+      flex-wrap: wrap;
     }
-    .legend-dot {
+    .legend-swatch {
       display: inline-block;
-      width: 8px; height: 8px;
-      border-radius: 50%;
+      width: 12px; height: 12px;
+      border-radius: 3px;
       margin-right: 5px;
+      vertical-align: middle;
     }
   </style>
 </head>
@@ -184,192 +158,182 @@
 </header>
 
 <div class="moon-info" id="moon-info">🌙 Chargement...</div>
-
 <div class="days-nav" id="days-nav"></div>
-
-<div id="table-container"><div class="loader">⏳ Chargement des données...</div></div>
+<div id="table-container"><div class="loader">⏳ Chargement des données météo et astro...</div></div>
 
 <div class="legend">
-  <div><span class="legend-dot" style="background:#81c784"></span>Bon</div>
-  <div><span class="legend-dot" style="background:#fff176"></span>Moyen</div>
-  <div><span class="legend-dot" style="background:#ef9a9a"></span>Mauvais</div>
-  <div><span class="legend-dot" style="background:#4caf50"></span>Fenêtre favorable</div>
+  <div><span class="legend-swatch" style="background:#0d2e14"></span>Excellent</div>
+  <div><span class="legend-swatch" style="background:#2e2200"></span>Correct</div>
+  <div><span class="legend-swatch" style="background:#2e0d0d"></span>Mauvais</div>
+  <div><span class="legend-swatch" style="background:#0d0d1e"></span>Heure de jour</div>
+  <div style="margin-left:auto; color:#37474f; font-style:italic">Sources : Open-Meteo · 7timer.info</div>
 </div>
 
 <script>
 const LAT = 48.8773, LON = 2.1890;
-const THRESHOLDS = { cloud: 20, humidity: 80, wind: 20, seeing: 3 };
+const THR = { cloud: 20, humidity: 80, wind: 20, seeing: 3 };
 
 let allData = [];
-let currentDay = 0;
 
-// ── Fetch Open-Meteo ─────────────────────────────────────────────────────────
+// ── Couleur heatmap ───────────────────────────────────────────────────────────
+// Interpole entre rouge foncé, orange foncé, vert foncé en HSL
+// t = 0 (mauvais) → 1 (excellent)
+function heatBg(t) {
+  // hue: 0 (rouge) → 35 (orange) → 130 (vert)
+  const hue = t < 0.5 ? t * 2 * 35 : 35 + (t - 0.5) * 2 * 95;
+  const sat = 60 + t * 20;
+  const lig = 8 + t * 10; // 8% → 18% (reste très sombre)
+  return `hsl(${Math.round(hue)}, ${Math.round(sat)}%, ${Math.round(lig)}%)`;
+}
+
+function heatText(t) {
+  const hue = t < 0.5 ? t * 2 * 35 : 35 + (t - 0.5) * 2 * 95;
+  return `hsl(${Math.round(hue)}, 80%, 72%)`;
+}
+
+function cellStyle(t) {
+  if (t === null) return `background:#0d0d1e; color:#2a2a3e;`;
+  const bg = heatBg(Math.max(0, Math.min(1, t)));
+  const fg = heatText(Math.max(0, Math.min(1, t)));
+  return `background:${bg}; color:${fg};`;
+}
+
+// t=0 mauvais, t=1 bon
+function tCloud(v)      { return 1 - v / 100; }
+function tHumidity(v)   { return 1 - Math.max(0, v - 40) / 60; }
+function tWind(v)       { return 1 - Math.min(v, 40) / 40; }
+function tSeeing(v)     { return v > 0 ? (v - 1) / 7 : null; }
+function tTransp(v)     { return v > 0 ? (v - 1) / 7 : null; }
+
+// ── Fetch ─────────────────────────────────────────────────────────────────────
 async function fetchOpenMeteo() {
-  const url = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&hourly=cloudcover,relativehumidity_2m,windspeed_10m,weathercode&timezone=Europe/Paris&forecast_days=3`;
-  const r = await fetch(url);
-  return r.json();
+  const url = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}`
+    + `&hourly=cloudcover,relativehumidity_2m,windspeed_10m&timezone=Europe/Paris&forecast_days=3`;
+  return (await fetch(url)).json();
 }
 
-// ── Fetch 7timer ─────────────────────────────────────────────────────────────
 async function fetch7timer() {
-  const url = `https://www.7timer.info/bin/api.pl?lon=${LON}&lat=${LAT}&product=astro&output=json`;
-  const r = await fetch(url);
-  return r.json();
+  return (await fetch(`https://www.7timer.info/bin/api.pl?lon=${LON}&lat=${LAT}&product=astro&output=json`)).json();
 }
 
-// ── Moon phase (simple calc) ─────────────────────────────────────────────────
-function moonPhase(date) {
-  const known = new Date(2000, 0, 6); // nouvelle lune connue
-  const diff = (date - known) / (1000 * 60 * 60 * 24);
-  const cycle = 29.53059;
-  const phase = ((diff % cycle) + cycle) % cycle;
-  const pct = Math.round((phase / cycle) * 100);
-  let emoji, name;
-  if (phase < 1.85)       { emoji = '🌑'; name = 'Nouvelle lune'; }
-  else if (phase < 7.38)  { emoji = '🌒'; name = 'Premier croissant'; }
-  else if (phase < 9.22)  { emoji = '🌓'; name = 'Premier quartier'; }
-  else if (phase < 14.77) { emoji = '🌔'; name = 'Gibbeuse croissante'; }
-  else if (phase < 16.61) { emoji = '🌕'; name = 'Pleine lune'; }
-  else if (phase < 22.15) { emoji = '🌖'; name = 'Gibbeuse décroissante'; }
-  else if (phase < 23.99) { emoji = '🌗'; name = 'Dernier quartier'; }
-  else if (phase < 29.53) { emoji = '🌘'; name = 'Dernier croissant'; }
-  else                    { emoji = '🌑'; name = 'Nouvelle lune'; }
-  return { emoji, name, pct };
-}
-
-// ── Build 7timer map ─────────────────────────────────────────────────────────
 function build7timerMap(astro) {
   const map = {};
-  const init = astro.init; // "2026022718"
-  const initDt = new Date(
-    parseInt(init.slice(0,4)), parseInt(init.slice(4,6))-1,
-    parseInt(init.slice(6,8)), parseInt(init.slice(8,10))
+  const s = astro.init;
+  const init = new Date(
+    Date.UTC(+s.slice(0,4), +s.slice(4,6)-1, +s.slice(6,8), +s.slice(8,10))
   );
-  astro.dataseries.forEach((entry, i) => {
-    const t = new Date(initDt.getTime() + i * 3 * 3600000);
-    const key = t.toISOString().slice(0,13); // "2026-02-27T18"
-    map[key] = { seeing: entry.seeing || 0, transparency: entry.transparency || 0 };
+  astro.dataseries.forEach((e, i) => {
+    const t = new Date(init.getTime() + i * 3 * 3600000);
+    // store by each of the 3 hours in this slot
+    for (let h = 0; h < 3; h++) {
+      const tt = new Date(t.getTime() + h * 3600000);
+      const key = tt.toISOString().slice(0, 16).replace('T', ' ');
+      map[key] = { seeing: e.seeing || 0, transparency: e.transparency || 0 };
+    }
   });
   return map;
 }
 
-// ── Classify ─────────────────────────────────────────────────────────────────
-function cls(val, low, high, invert = false) {
-  if (invert) { // lower is better
-    if (val <= low) return 'cell-good';
-    if (val <= high) return 'cell-ok';
-    return 'cell-bad';
-  } else { // higher is better
-    if (val >= high) return 'cell-good';
-    if (val >= low) return 'cell-ok';
-    return 'cell-bad';
-  }
+function moonPhase(date) {
+  const known = new Date(2000, 0, 6);
+  const phase = (((date - known) / 86400000) % 29.53059 + 29.53059) % 29.53059;
+  const pct = Math.round((phase / 29.53059) * 100);
+  const emojis = ['🌑','🌒','🌒','🌓','🌔','🌔','🌕','🌖','🌖','🌗','🌘','🌘','🌑'];
+  const names  = ['Nouvelle lune','Croissant','Croissant','Premier quartier','Gibbeuse croissante','Gibbeuse croissante','Pleine lune','Gibbeuse décroissante','Gibbeuse décroissante','Dernier quartier','Dernier croissant','Dernier croissant','Nouvelle lune'];
+  const idx = Math.round(phase / 29.53059 * 12);
+  return { emoji: emojis[idx], name: names[idx], pct };
 }
 
-function isGoodWindow(row) {
-  return row.cloud <= THRESHOLDS.cloud
-    && row.humidity <= THRESHOLDS.humidity
-    && row.wind <= THRESHOLDS.wind
-    && row.seeing >= THRESHOLDS.seeing;
+function isNight(h) { return h >= 20 || h <= 5; }
+
+function isGood(r) {
+  return r.cloud <= THR.cloud && r.humidity <= THR.humidity
+      && r.wind <= THR.wind && r.seeing >= THR.seeing;
 }
 
-function isNight(hour) {
-  return hour >= 20 || hour <= 5;
-}
-
-// ── Render ───────────────────────────────────────────────────────────────────
+// ── Render ────────────────────────────────────────────────────────────────────
 function renderDay(dayIdx) {
-  currentDay = dayIdx;
-  const rows = allData.filter(r => r.dayIdx === dayIdx);
-
-  // Update nav buttons
   document.querySelectorAll('.days-nav button').forEach((b, i) => {
     b.classList.toggle('active', i === dayIdx);
   });
 
+  const rows = allData.filter(r => r.dayIdx === dayIdx);
+
   const tbody = rows.map(r => {
-    const nightClass = isNight(r.hour) ? 'night-hour' : '';
-    const goodClass = isNight(r.hour) && isGoodWindow(r) ? 'good-window' : '';
-    const score = isNight(r.hour) && isGoodWindow(r)
-      ? '<span class="score score-go">✅ GO</span>'
-      : isNight(r.hour) && (r.cloud <= 40 && r.seeing >= 2)
-        ? '<span class="score score-maybe">⚠️ Moyen</span>'
-        : isNight(r.hour)
-          ? '<span class="score score-no">❌</span>'
-          : '<span class="score score-no" style="opacity:0.3">—</span>';
+    const night = isNight(r.hour);
+    const good  = night && isGood(r);
+    const dimClass = night ? '' : 'dim';
 
-    const nightBadge = isNight(r.hour) ? ' 🌙' : '';
+    const score = !night
+      ? `<span class="score score-no" style="opacity:0.2">—</span>`
+      : good
+        ? `<span class="score score-go">✅ GO</span>`
+        : (r.cloud <= 50 && r.seeing >= 2)
+          ? `<span class="score score-maybe">⚠️</span>`
+          : `<span class="score score-no">✗</span>`;
 
-    const seeingVal = r.seeing > 0 ? `${r.seeing}/8` : '—';
-    const seeingCls = r.seeing > 0 ? cls(r.seeing, 3, 5) : 'cell-unknown';
-    const transp = r.transparency > 0 ? `${r.transparency}/8` : '—';
-    const transpCls = r.transparency > 0 ? cls(r.transparency, 3, 5) : 'cell-unknown';
+    const nightMark = night ? ' <span style="color:#3949ab;font-size:.7rem">🌙</span>' : '';
 
-    return `<tr class="${nightClass} ${goodClass}">
-      <td>${r.timeLabel}${nightBadge}</td>
-      <td class="${cls(r.cloud, 20, 10, true)}">${r.cloud}%</td>
-      <td class="${cls(r.humidity, 80, 60, true)}">${r.humidity}%</td>
-      <td class="${cls(r.wind, 20, 10, true)}">${r.wind} km/h</td>
-      <td class="source-group ${seeingCls}">${seeingVal}</td>
-      <td class="${transpCls}">${transp}</td>
-      <td>${score}</td>
+    return `<tr class="${dimClass}">
+      <td>${r.timeLabel}${nightMark}</td>
+      <td style="${cellStyle(tCloud(r.cloud))}">${r.cloud}%</td>
+      <td style="${cellStyle(tHumidity(r.humidity))}">${r.humidity}%</td>
+      <td style="${cellStyle(tWind(r.wind))}">${r.wind} km/h</td>
+      <td class="sep" style="${cellStyle(tSeeing(r.seeing))}">${r.seeing > 0 ? r.seeing+'/8' : '—'}</td>
+      <td style="${cellStyle(tTransp(r.transparency))}">${r.transparency > 0 ? r.transparency+'/8' : '—'}</td>
+      <td class="sep">${score}</td>
     </tr>`;
   }).join('');
 
   document.getElementById('table-container').innerHTML = `
-    <table>
-      <thead>
-        <tr>
-          <th>Heure</th>
-          <th colspan="3">☁️ Open-Meteo</th>
-          <th colspan="2" class="source-header">⭐ 7timer</th>
-          <th>Score</th>
-        </tr>
-        <tr>
-          <th></th>
-          <th>Nuages</th>
-          <th>Humidité</th>
-          <th>Vent</th>
-          <th class="source-header">Seeing</th>
-          <th>Transp.</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>${tbody}</tbody>
-    </table>`;
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th rowspan="2">Heure</th>
+            <th colspan="3" style="border-bottom:1px solid #1a1a30">☁️ Open-Meteo</th>
+            <th colspan="2" class="sep" style="border-bottom:1px solid #1a1a30">⭐ 7timer</th>
+            <th rowspan="2" class="sep">Score</th>
+          </tr>
+          <tr>
+            <th>Nuages</th>
+            <th>Humidité</th>
+            <th>Vent</th>
+            <th class="sep">Seeing</th>
+            <th>Transp.</th>
+          </tr>
+        </thead>
+        <tbody>${tbody}</tbody>
+      </table>
+    </div>`;
 }
 
-// ── Main ─────────────────────────────────────────────────────────────────────
+// ── Main ──────────────────────────────────────────────────────────────────────
 async function main() {
   try {
     const [meteo, astro] = await Promise.all([fetchOpenMeteo(), fetch7timer()]);
     const seeingMap = build7timerMap(astro);
 
-    const times = meteo.hourly.time;
-    const clouds = meteo.hourly.cloudcover;
-    const humidity = meteo.hourly.relativehumidity_2m;
-    const wind = meteo.hourly.windspeed_10m;
-
+    const { time, cloudcover, relativehumidity_2m: humidity, windspeed_10m: wind } = meteo.hourly;
     const dayLabels = [];
 
-    times.forEach((tStr, i) => {
-      const t = new Date(tStr);
+    time.forEach((tStr, i) => {
+      const t      = new Date(tStr);
       const dayIdx = Math.floor(i / 24);
-      const dateLabel = t.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
-      if (!dayLabels[dayIdx]) dayLabels[dayIdx] = dateLabel;
+      const label  = t.toLocaleDateString('fr-FR', { weekday:'long', day:'numeric', month:'long' });
+      if (!dayLabels[dayIdx]) dayLabels[dayIdx] = label;
 
-      const key = tStr.slice(0, 13); // "2026-02-27T20"
-      const rounded = tStr.slice(0, 11) + String(Math.floor(t.getHours() / 3) * 3).padStart(2, '0');
-      const astroData = seeingMap[key] || seeingMap[rounded] || { seeing: 0, transparency: 0 };
+      const key  = tStr.replace('T', ' ').slice(0, 16);
+      const astroData = seeingMap[key] || { seeing: 0, transparency: 0 };
 
       allData.push({
         dayIdx,
         hour: t.getHours(),
         timeLabel: `${String(t.getHours()).padStart(2,'0')}h00`,
-        cloud: clouds[i],
-        humidity: humidity[i],
-        wind: Math.round(wind[i]),
-        seeing: astroData.seeing,
+        cloud:        cloudcover[i],
+        humidity:     humidity[i],
+        wind:         Math.round(wind[i]),
+        seeing:       astroData.seeing,
         transparency: astroData.transparency,
       });
     });
@@ -377,9 +341,9 @@ async function main() {
     // Moon
     const moon = moonPhase(new Date());
     document.getElementById('moon-info').innerHTML =
-      `${moon.emoji} <b>${moon.name}</b> (${moon.pct}% du cycle) &nbsp;|&nbsp; 
-       🌑 Nouvelle lune favorable à l'astro &nbsp;|&nbsp;
-       📅 Données sur <b>3 jours</b>`;
+      `${moon.emoji} <b>${moon.name}</b> — ${moon.pct}% du cycle &nbsp;·&nbsp;
+       🌑 Nouvelle lune = optimal &nbsp;·&nbsp;
+       🔭 Seuils : nuages ≤${THR.cloud}% · humidité ≤${THR.humidity}% · vent ≤${THR.wind}km/h · seeing ≥${THR.seeing}/8`;
 
     // Nav
     const nav = document.getElementById('days-nav');
@@ -387,6 +351,7 @@ async function main() {
       const btn = document.createElement('button');
       btn.textContent = i === 0 ? `Aujourd'hui — ${label}` : label;
       btn.onclick = () => renderDay(i);
+      if (i === 0) btn.classList.add('active');
       nav.appendChild(btn);
     });
 
@@ -394,7 +359,8 @@ async function main() {
 
   } catch (e) {
     document.getElementById('table-container').innerHTML =
-      `<div class="loader" style="color:#ef9a9a">❌ Erreur : ${e.message}</div>`;
+      `<div class="loader" style="color:#ef5350">❌ Erreur de chargement : ${e.message}</div>`;
+    console.error(e);
   }
 }
 
