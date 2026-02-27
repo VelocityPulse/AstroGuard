@@ -20,7 +20,7 @@
       position: sticky;
       top: 0;
       z-index: 100;
-      padding: 10px 16px 10px 218px;
+      padding: 10px 16px;
       display: flex;
       align-items: center;
       gap: 10px;
@@ -31,13 +31,22 @@
     header .loc { color: #5c6bc0; font-size: 0.82rem; margin-left: 6px; }
     header .moon { margin-left: auto; font-size: 0.8rem; color: #7986cb; }
 
+    /* ── Layout : sidebar + tableau centrés ── */
+    .content-area {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      gap: 24px;
+      padding: 16px;
+    }
+
     /* ── Sidebar flottante ── */
     #sidebar {
-      position: fixed;
+      position: sticky;
       top: 58px;
-      left: 12px;
-      bottom: 12px;
-      width: 190px;
+      width: 230px;
+      max-height: calc(100vh - 70px);
+      flex-shrink: 0;
       background: #0c0c1c;
       border: 1px solid #1e1e3a;
       border-radius: 14px;
@@ -74,16 +83,17 @@
       padding-left: 9px;
     }
 
-
-    .sb-item .sb-score {
+    .sb-item .sb-top {
       display: flex;
       align-items: center;
-      gap: 6px;
-      font-size: 0.8rem;
+      gap: 5px;
+      font-size: 0.78rem;
       font-weight: 700;
     }
-    .sb-item .sb-date {
-      font-size: 0.7rem;
+    .sb-item .sb-top .sb-icon { font-size: 0.85rem; }
+    .sb-item .sb-top .sb-label { color: #c9d1e0; font-weight: 600; }
+    .sb-item .sb-pct {
+      font-size: 0.68rem;
       color: #546e7a;
       font-weight: 500;
     }
@@ -101,23 +111,16 @@
       font-weight: 600;
     }
 
-    /* ── Layout principal ── */
+    /* ── Tableau ── */
     .main {
-      margin-left: 214px;
-    }
-
-    .wrap {
-      overflow-x: auto;
-      display: flex;
-      justify-content: center;
-      padding: 16px;
+      flex-shrink: 0;
     }
 
     table { border-collapse: collapse; width: fit-content; }
 
     thead th {
       position: sticky;
-      top: 41px; /* header height */
+      top: var(--header-h, 41px);
       z-index: 10;
       background: #0a0a14;
       color: #546e7a;
@@ -200,12 +203,6 @@
 </head>
 <body>
 
-<!-- Sidebar -->
-<div id="sidebar">
-  <div class="sb-title">Sommaire</div>
-  <div id="sb-list"><div style="padding:12px;color:#37474f;font-size:.75rem">Chargement...</div></div>
-</div>
-
 <!-- Header -->
 <header>
   <span>🌑</span>
@@ -213,9 +210,13 @@
   <div class="moon" id="moon-badge">🌙 chargement...</div>
 </header>
 
-<!-- Contenu principal -->
-<div class="main">
-  <div class="wrap">
+<!-- Sidebar + Tableau centrés -->
+<div class="content-area">
+  <div id="sidebar">
+    <div class="sb-title">Sommaire</div>
+    <div id="sb-list"><div style="padding:12px;color:#37474f;font-size:.75rem">Chargement...</div></div>
+  </div>
+  <div class="main">
     <div id="table-container"><div class="loader">⏳ Chargement...</div></div>
   </div>
 </div>
@@ -303,6 +304,10 @@ async function main() {
     document.getElementById('moon-badge').textContent =
       `${moon.emoji} ${moon.pct}% du cycle · seuil nuages ≤${THR.cloud}%`;
 
+    // Calibrer le top sticky du thead sur la vraie hauteur du header
+    const headerEl = document.querySelector('header');
+    if (headerEl) document.documentElement.style.setProperty('--header-h', headerEl.offsetHeight + 'px');
+
     // ── Pré-calcul stats par jour (heures de nuit uniquement) ──
     const dayStats = {}; // key = "YYYY-MM-DD"
     time.forEach((tStr, i) => {
@@ -323,6 +328,7 @@ async function main() {
     sbList.innerHTML = days.map(day => {
       const s = dayStats[day];
       const ratio = s.total ? s.good / s.total : 0;
+      const pct = Math.round(ratio * 100);
       const ok = ratio >= 0.5;
       const t = new Date(day + 'T12:00:00');
       const label = t.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' });
@@ -331,11 +337,11 @@ async function main() {
       const avgH = s.total ? Math.round(s.sumH / s.total) : '—';
       return `
         <div class="sb-item" data-day="${day}" onclick="scrollToDay('${day}')">
-          <div class="sb-score">
-            <span style="font-size:.9rem">${ok ? '✅' : '✗'}</span>
-            <span style="font-size:.72rem;color:${ok ? '#69f0ae' : '#546e7a'};font-weight:600">${Math.round(ratio*100)}% nuit</span>
+          <div class="sb-top">
+            <span class="sb-icon">${ok ? '✅' : '✗'}</span>
+            <span class="sb-label">${label}</span>
           </div>
-          <div class="sb-date">${label}</div>
+          <div class="sb-pct">${pct}% de la nuit dégagée</div>
           <div class="sb-clouds">
             <span style="color:${cloudColor(avgL)}">B:${avgL}%</span>
             <span style="color:${cloudColor(avgM)}">M:${avgM}%</span>
@@ -349,17 +355,12 @@ async function main() {
       <table id="main-table">
         <thead>
           <tr>
-            <th rowspan="2">✓</th>
-            <th rowspan="2">H</th>
-            <th colspan="3" class="sep">☁️ Nuages</th>
-            <th colspan="3" class="sep">☁️ Open-Meteo</th>
-            <th colspan="2" class="sep">⭐ 7timer</th>
-            <th rowspan="2" class="sep">🌙 Lune</th>
-          </tr>
-          <tr>
+            <th>✓</th>
+            <th>H</th>
             <th class="sep">Bas</th><th>Moy</th><th>Haut</th>
-            <th class="sep">Total</th><th>Humidité</th><th>Vent</th>
+            <th class="sep">Total</th><th>Humid.</th><th>Vent</th>
             <th class="sep">Seeing</th><th>Transp.</th>
+            <th class="sep">🌙</th>
           </tr>
         </thead>
         <tbody>`;
@@ -421,7 +422,6 @@ async function main() {
           document.querySelectorAll('.sb-item').forEach(el => {
             el.classList.toggle('active', el.dataset.day === day);
           });
-          // Scroll sidebar item into view
           const sbItem = document.querySelector(`.sb-item[data-day="${day}"]`);
           if (sbItem) sbItem.scrollIntoView({ block: 'nearest' });
         }
@@ -439,7 +439,9 @@ async function main() {
 
 function scrollToDay(day) {
   const el = document.getElementById('day-' + day);
-  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  if (!el) return;
+  const y = el.getBoundingClientRect().top + window.scrollY - 90;
+  window.scrollTo({ top: y, behavior: 'smooth' });
 }
 
 main();
