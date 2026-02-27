@@ -15,17 +15,92 @@
       font-size: 13px;
     }
 
+    /* ── Header ── */
     header {
-      padding: 12px 16px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      padding: 10px 16px 10px 180px;
       display: flex;
       align-items: center;
       gap: 10px;
       border-bottom: 1px solid #1a1a2e;
       background: #0a0a14;
     }
-    header h1 { font-size: 1.1rem; color: #e8eaf6; }
+    header h1  { font-size: 1.1rem; color: #e8eaf6; }
     header .loc { color: #5c6bc0; font-size: 0.82rem; margin-left: 6px; }
     header .moon { margin-left: auto; font-size: 0.8rem; color: #7986cb; }
+
+    /* ── Sidebar flottante ── */
+    #sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: 158px;
+      background: #080812;
+      border-right: 1px solid #1a1a2e;
+      overflow-y: auto;
+      z-index: 99;
+      padding-top: 44px; /* height of header */
+    }
+    #sidebar::-webkit-scrollbar { width: 4px; }
+    #sidebar::-webkit-scrollbar-thumb { background: #1e1e38; border-radius: 2px; }
+
+    .sb-title {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #37474f;
+      padding: 10px 10px 6px;
+      border-bottom: 1px solid #111128;
+    }
+
+    .sb-item {
+      padding: 8px 10px;
+      border-bottom: 1px solid #0f0f1e;
+      cursor: pointer;
+      transition: background 0.15s;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .sb-item:hover { background: #0f0f22; }
+    .sb-item.active {
+      background: #111130;
+      border-left: 3px solid #3949ab;
+    }
+
+    .sb-item .sb-score {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+    .sb-item .sb-date {
+      font-size: 0.7rem;
+      color: #546e7a;
+      font-weight: 500;
+    }
+    .sb-item .sb-clouds {
+      display: flex;
+      gap: 4px;
+      font-size: 0.68rem;
+      color: #546e7a;
+      margin-top: 2px;
+    }
+    .sb-item .sb-clouds span {
+      background: #111128;
+      padding: 1px 4px;
+      border-radius: 3px;
+      font-weight: 600;
+    }
+
+    /* ── Layout principal ── */
+    .main {
+      margin-left: 158px;
+    }
 
     .wrap {
       overflow-x: auto;
@@ -36,10 +111,9 @@
 
     table { border-collapse: collapse; width: fit-content; }
 
-    /* Sticky main header */
     thead th {
       position: sticky;
-      top: 0;
+      top: 41px; /* header height */
       z-index: 10;
       background: #0a0a14;
       color: #546e7a;
@@ -54,7 +128,6 @@
     thead th:first-child { text-align: left; padding-left: 10px; }
     thead th.sep { border-left: 1px solid #1e1e38; }
 
-    /* Day separator */
     tr.day-header td {
       background: #111128;
       color: #7986cb;
@@ -65,7 +138,6 @@
       letter-spacing: 0.03em;
     }
 
-    /* Sub-header repeated under each day */
     tr.sub-header td {
       background: #0d0d1e;
       color: #455a64;
@@ -81,7 +153,6 @@
     tr.sub-header td:first-child { text-align: left; padding-left: 10px; }
     tr.sub-header td.sep { border-left: 1px solid #1e1e38; }
 
-    /* Data rows */
     tbody tr.data-row { border-bottom: 1px solid rgba(255,255,255,0.03); }
     tbody tr.data-row:hover { filter: brightness(1.2); }
 
@@ -95,7 +166,6 @@
       height: 26px;
       width: 1%;
     }
-
     td.hour {
       text-align: left;
       padding-left: 10px;
@@ -106,9 +176,7 @@
       border-right: 1px solid #1a1a2e;
       white-space: nowrap;
     }
-
     td.sep { border-left: 1px solid #1e1e38; }
-
     td.score-cell {
       border-right: 1px solid #1e1e38;
       font-size: 0.75rem;
@@ -128,19 +196,29 @@
 </head>
 <body>
 
+<!-- Sidebar -->
+<div id="sidebar">
+  <div class="sb-title">Sommaire</div>
+  <div id="sb-list"><div style="padding:12px;color:#37474f;font-size:.75rem">Chargement...</div></div>
+</div>
+
+<!-- Header -->
 <header>
   <span>🌑</span>
   <h1>AstroGuard <span class="loc">📍 Rueil-Malmaison</span></h1>
   <div class="moon" id="moon-badge">🌙 chargement...</div>
 </header>
 
-<div class="wrap">
-  <div id="table-container"><div class="loader">⏳ Chargement...</div></div>
+<!-- Contenu principal -->
+<div class="main">
+  <div class="wrap">
+    <div id="table-container"><div class="loader">⏳ Chargement...</div></div>
+  </div>
 </div>
 
 <script>
 const LAT = 48.8773, LON = 2.1890;
-const THR = { cloud: 20, humidity: 80, wind: 20, seeing: 3 };
+const THR = { cloud: 20 };
 
 function heatCell(t, isNight) {
   if (t === null) return '';
@@ -152,21 +230,21 @@ function heatCell(t, isNight) {
   return `background:hsl(${Math.round(hue)},${Math.round(sat)}%,${Math.round(lig)}%);color:hsl(${Math.round(hue)},80%,${Math.round(textLig)}%);`;
 }
 
+function cloudColor(pct) {
+  const t = 1 - pct / 100;
+  const hue = t < 0.5 ? t * 2 * 30 : 30 + (t - 0.5) * 2 * 90;
+  return `hsl(${Math.round(hue)},70%,55%)`;
+}
+
 function tCloud(v)  { return 1 - v / 100; }
 function tHumid(v)  { return 1 - Math.max(0, v - 40) / 60; }
 function tWind(v)   { return 1 - Math.min(v, 40) / 40; }
 function tSeeing(v) { return v > 0 ? (v - 1) / 7 : null; }
 function tTransp(v) { return v > 0 ? (v - 1) / 7 : null; }
-
 function isNightHour(h) { return h >= 20 || h <= 5; }
 
-// Seul critère éliminant : la couverture nuageuse totale
-function isGood(cl)    { return cl <= THR.cloud; }
-function isMaybe(cl)   { return cl <= 50; }
-
-// Illumination lunaire en % (0=nouvelle lune, 100=pleine lune)
 function moonIllumination(date) {
-  const known = new Date(2000, 0, 6); // nouvelle lune de référence
+  const known = new Date(2000, 0, 6);
   const phase = (((date - known) / 86400000) % 29.53059 + 29.53059) % 29.53059;
   const angle = (phase / 29.53059) * 2 * Math.PI;
   return Math.round((1 - Math.cos(angle)) / 2 * 100);
@@ -175,16 +253,14 @@ function moonIllumination(date) {
 function moonPhase(date) {
   const known = new Date(2000, 0, 6);
   const phase = (((date - known) / 86400000) % 29.53059 + 29.53059) % 29.53059;
-  const pct = Math.round((phase / 29.53059) * 100);
   const emojis = ['🌑','🌒','🌓','🌔','🌕','🌖','🌗','🌘'];
+  const pct = Math.round((phase / 29.53059) * 100);
   return { emoji: emojis[Math.round(phase / 29.53059 * 7) % 8], pct };
 }
 
-// Sub-header HTML (repeated under each day)
 const SUB_HEADER = `
   <tr class="sub-header">
-    <td>✓</td>
-    <td>H</td>
+    <td>✓</td><td>H</td>
     <td class="sep">Bas</td><td>Moy</td><td>Haut</td>
     <td class="sep">Total</td><td>Humidité</td><td>Vent</td>
     <td class="sep">Seeing</td><td>Transp.</td>
@@ -195,12 +271,10 @@ async function fetchOpenMeteo() {
   const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&hourly=cloudcover,cloudcover_low,cloudcover_mid,cloudcover_high,relativehumidity_2m,windspeed_10m&timezone=Europe/Paris&forecast_days=8`);
   return r.json();
 }
-
 async function fetch7timer() {
   const r = await fetch(`https://www.7timer.info/bin/api.pl?lon=${LON}&lat=${LAT}&product=astro&output=json`);
   return r.json();
 }
-
 function build7timerMap(astro) {
   const map = {};
   const s = astro.init;
@@ -223,10 +297,52 @@ async function main() {
 
     const moon = moonPhase(new Date());
     document.getElementById('moon-badge').textContent =
-      `${moon.emoji} ${moon.pct}% du cycle · seuils: ☁️≤${THR.cloud}% 💧≤${THR.humidity}% 💨≤${THR.wind}km/h 👁️≥${THR.seeing}/8`;
+      `${moon.emoji} ${moon.pct}% du cycle · seuil nuages ≤${THR.cloud}%`;
 
+    // ── Pré-calcul stats par jour (heures de nuit uniquement) ──
+    const dayStats = {}; // key = "YYYY-MM-DD"
+    time.forEach((tStr, i) => {
+      const t  = new Date(tStr);
+      const hr = t.getHours();
+      if (!isNightHour(hr)) return;
+      const day = tStr.slice(0, 10);
+      if (!dayStats[day]) dayStats[day] = { good: 0, total: 0, sumL: 0, sumM: 0, sumH: 0 };
+      const s = dayStats[day];
+      s.total++;
+      if (clouds[i] <= THR.cloud) s.good++;
+      s.sumL += cLow[i]; s.sumM += cMid[i]; s.sumH += cHigh[i];
+    });
+
+    // ── Sidebar ──
+    const sbList = document.getElementById('sb-list');
+    const days = Object.keys(dayStats).sort();
+    sbList.innerHTML = days.map(day => {
+      const s = dayStats[day];
+      const ratio = s.total ? s.good / s.total : 0;
+      const ok = ratio >= 0.5;
+      const t = new Date(day + 'T12:00:00');
+      const label = t.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' });
+      const avgL = s.total ? Math.round(s.sumL / s.total) : '—';
+      const avgM = s.total ? Math.round(s.sumM / s.total) : '—';
+      const avgH = s.total ? Math.round(s.sumH / s.total) : '—';
+      return `
+        <div class="sb-item" data-day="${day}" onclick="scrollToDay('${day}')">
+          <div class="sb-score">
+            <span style="font-size:.9rem">${ok ? '✅' : '✗'}</span>
+            <span style="font-size:.72rem;color:${ok ? '#69f0ae' : '#546e7a'};font-weight:600">${Math.round(ratio*100)}% nuit</span>
+          </div>
+          <div class="sb-date">${label}</div>
+          <div class="sb-clouds">
+            <span style="color:${cloudColor(avgL)}">B:${avgL}%</span>
+            <span style="color:${cloudColor(avgM)}">M:${avgM}%</span>
+            <span style="color:${cloudColor(avgH)}">H:${avgH}%</span>
+          </div>
+        </div>`;
+    }).join('');
+
+    // ── Tableau principal ──
     let html = `
-      <table>
+      <table id="main-table">
         <thead>
           <tr>
             <th rowspan="2">✓</th>
@@ -245,7 +361,6 @@ async function main() {
         <tbody>`;
 
     let lastDay = null;
-
     time.forEach((tStr, i) => {
       const t   = new Date(tStr);
       const day = tStr.slice(0, 10);
@@ -254,58 +369,73 @@ async function main() {
 
       if (day !== lastDay) {
         const label = t.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-        html += `<tr class="day-header"><td colspan="11">📅 ${label}</td></tr>`;
+        html += `<tr class="day-header" data-day="${day}" id="day-${day}"><td colspan="11">📅 ${label}</td></tr>`;
         html += SUB_HEADER;
         lastDay = day;
       }
 
-      const key  = tStr.slice(0, 13);
-      const ad   = smap[key] || { seeing: 0, transparency: 0 };
-      const cl   = clouds[i], cl_l = cLow[i], cl_m = cMid[i], cl_h = cHigh[i];
-      const hu   = humid[i],  wi   = Math.round(wind[i]);
-      const se   = ad.seeing, tr = ad.transparency;
+      const key = tStr.slice(0, 13);
+      const ad  = smap[key] || { seeing: 0, transparency: 0 };
+      const cl  = clouds[i], cl_l = cLow[i], cl_m = cMid[i], cl_h = cHigh[i];
+      const hu  = humid[i],  wi   = Math.round(wind[i]);
+      const se  = ad.seeing, tr   = ad.transparency;
       const illum = moonIllumination(t);
-      const good  = night && isGood(cl);
       const rowCls = night ? 'is-night' : 'is-day';
 
-      // Score basé uniquement sur les nuages
-      const scoreHtml = !night
-        ? `<span class="score-no">·</span>`
-        : good
-          ? `<span class="score-go">✅</span>`
-          : isMaybe(cl)
-            ? `<span class="score-maybe">▲</span>`
-            : `<span class="score-no">✗</span>`;
+      const scoreHtml = !night ? `<span class="score-no">·</span>`
+        : cl <= THR.cloud  ? `<span class="score-go">✅</span>`
+        : cl <= 50         ? `<span class="score-maybe">▲</span>`
+                           : `<span class="score-no">✗</span>`;
 
-      // Couleur lune : vert si < 25%, orange si < 60%, rouge sinon
       const moonColor = illum < 25 ? '#69f0ae' : illum < 60 ? '#ffd54f' : '#ef9a9a';
-
-      const hourLabel = String(hr).padStart(2, '0') + 'h';
+      const hourLabel = String(hr).padStart(2,'0') + 'h';
       const nightMark = night ? ` <span style="color:#3949ab;font-size:.6rem">🌙</span>` : '';
 
       html += `<tr class="data-row ${rowCls}">
         <td class="score-cell">${scoreHtml}</td>
         <td class="hour">${hourLabel}${nightMark}</td>
-        <td class="sep" style="${heatCell(tCloud(cl_l), night)}">${cl_l}%</td>
-        <td style="${heatCell(tCloud(cl_m), night)}">${cl_m}%</td>
-        <td style="${heatCell(tCloud(cl_h), night)}">${cl_h}%</td>
-        <td class="sep" style="${heatCell(tCloud(cl), night)}">${cl}%</td>
-        <td style="${heatCell(tHumid(hu), night)}">${hu}%</td>
-        <td style="${heatCell(tWind(wi), night)}">${wi}</td>
-        <td class="sep" style="${heatCell(tSeeing(se), night)}">${se > 0 ? se+'/8' : '—'}</td>
-        <td style="${heatCell(tTransp(tr), night)}">${tr > 0 ? tr+'/8' : '—'}</td>
-        <td class="sep" style="color:${moonColor};background:#090912">${night ? illum+'%' : '—'}</td>
+        <td class="sep" style="${heatCell(tCloud(cl_l),night)}">${cl_l}%</td>
+        <td style="${heatCell(tCloud(cl_m),night)}">${cl_m}%</td>
+        <td style="${heatCell(tCloud(cl_h),night)}">${cl_h}%</td>
+        <td class="sep" style="${heatCell(tCloud(cl),night)}">${cl}%</td>
+        <td style="${heatCell(tHumid(hu),night)}">${hu}%</td>
+        <td style="${heatCell(tWind(wi),night)}">${wi}</td>
+        <td class="sep" style="${heatCell(tSeeing(se),night)}">${se>0?se+'/8':'—'}</td>
+        <td style="${heatCell(tTransp(tr),night)}">${tr>0?tr+'/8':'—'}</td>
+        <td class="sep" style="color:${moonColor};background:#090912">${night?illum+'%':'—'}</td>
       </tr>`;
     });
 
     html += `</tbody></table>`;
     document.getElementById('table-container').innerHTML = html;
 
+    // ── IntersectionObserver : surbrillance sidebar ──
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const day = entry.target.dataset.day;
+          document.querySelectorAll('.sb-item').forEach(el => {
+            el.classList.toggle('active', el.dataset.day === day);
+          });
+          // Scroll sidebar item into view
+          const sbItem = document.querySelector(`.sb-item[data-day="${day}"]`);
+          if (sbItem) sbItem.scrollIntoView({ block: 'nearest' });
+        }
+      });
+    }, { rootMargin: '-10% 0px -80% 0px', threshold: 0 });
+
+    document.querySelectorAll('tr.day-header[data-day]').forEach(el => observer.observe(el));
+
   } catch (e) {
     document.getElementById('table-container').innerHTML =
       `<div class="loader" style="color:#ef5350">❌ ${e.message}</div>`;
     console.error(e);
   }
+}
+
+function scrollToDay(day) {
+  const el = document.getElementById('day-' + day);
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 main();
