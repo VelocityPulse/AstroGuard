@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AstroGuard 🔭</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #0a0a12;
+      color: #c9d1e0;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      padding: 24px;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+
+    header h1 {
+      font-size: 1.6rem;
+      color: #e8eaf6;
+    }
+
+    header span.loc {
+      font-size: 0.9rem;
+      color: #7986cb;
+      margin-left: 8px;
+    }
+
+    .days-nav {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .days-nav button {
+      background: #1a1a2e;
+      border: 1px solid #2a2a4a;
+      color: #9fa8da;
+      padding: 6px 16px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: all 0.2s;
+    }
+
+    .days-nav button.active, .days-nav button:hover {
+      background: #3949ab;
+      border-color: #3949ab;
+      color: #fff;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+    }
+
+    thead th {
+      background: #111128;
+      color: #7986cb;
+      padding: 10px 14px;
+      text-align: center;
+      font-weight: 600;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-bottom: 2px solid #1e1e3a;
+      position: sticky;
+      top: 0;
+    }
+
+    thead th.source-header {
+      border-left: 2px solid #1e1e3a;
+    }
+
+    thead th:first-child { text-align: left; }
+
+    tbody tr {
+      border-bottom: 1px solid #111128;
+      transition: background 0.15s;
+    }
+
+    tbody tr:hover { background: #13132a; }
+
+    tbody tr.night-hour { background: #0d0d20; }
+    tbody tr.night-hour:hover { background: #14142e; }
+
+    tbody tr.good-window {
+      background: #0a1f14 !important;
+    }
+    tbody tr.good-window:hover { background: #0d2618 !important; }
+
+    tbody tr.good-window td:first-child {
+      border-left: 3px solid #4caf50;
+    }
+
+    td {
+      padding: 9px 14px;
+      text-align: center;
+      vertical-align: middle;
+    }
+
+    td:first-child {
+      text-align: left;
+      font-weight: 600;
+      color: #e8eaf6;
+      white-space: nowrap;
+      border-left: 3px solid transparent;
+    }
+
+    td.night-badge {
+      font-size: 0.75rem;
+    }
+
+    .source-group {
+      border-left: 2px solid #1e1e3a;
+    }
+
+    .cell-good    { color: #81c784; font-weight: 600; }
+    .cell-ok      { color: #fff176; }
+    .cell-bad     { color: #ef9a9a; }
+    .cell-unknown { color: #555; }
+
+    .score {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 0.8rem;
+    }
+    .score-go    { background: #1b5e20; color: #a5d6a7; }
+    .score-maybe { background: #f57f17; color: #fff9c4; }
+    .score-no    { background: #1a1a2e; color: #455a64; }
+
+    .loader {
+      text-align: center;
+      padding: 60px;
+      color: #3949ab;
+      font-size: 1.1rem;
+    }
+
+    .moon-info {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 20px;
+      padding: 12px 16px;
+      background: #111128;
+      border-radius: 10px;
+      border: 1px solid #1e1e3a;
+      font-size: 0.85rem;
+      color: #9fa8da;
+    }
+
+    .moon-info span { color: #e8eaf6; font-weight: 600; }
+
+    .legend {
+      display: flex;
+      gap: 16px;
+      margin-top: 16px;
+      font-size: 0.78rem;
+      color: #546e7a;
+    }
+    .legend-dot {
+      display: inline-block;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      margin-right: 5px;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <span style="font-size:2rem">🔭</span>
+  <div>
+    <h1>AstroGuard <span class="loc">📍 Rueil-Malmaison</span></h1>
+  </div>
+</header>
+
+<div class="moon-info" id="moon-info">🌙 Chargement...</div>
+
+<div class="days-nav" id="days-nav"></div>
+
+<div id="table-container"><div class="loader">⏳ Chargement des données...</div></div>
+
+<div class="legend">
+  <div><span class="legend-dot" style="background:#81c784"></span>Bon</div>
+  <div><span class="legend-dot" style="background:#fff176"></span>Moyen</div>
+  <div><span class="legend-dot" style="background:#ef9a9a"></span>Mauvais</div>
+  <div><span class="legend-dot" style="background:#4caf50"></span>Fenêtre favorable</div>
+</div>
+
+<script>
+const LAT = 48.8773, LON = 2.1890;
+const THRESHOLDS = { cloud: 20, humidity: 80, wind: 20, seeing: 3 };
+
+let allData = [];
+let currentDay = 0;
+
+// ── Fetch Open-Meteo ─────────────────────────────────────────────────────────
+async function fetchOpenMeteo() {
+  const url = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&hourly=cloudcover,relativehumidity_2m,windspeed_10m,weathercode&timezone=Europe/Paris&forecast_days=3`;
+  const r = await fetch(url);
+  return r.json();
+}
+
+// ── Fetch 7timer ─────────────────────────────────────────────────────────────
+async function fetch7timer() {
+  const url = `https://www.7timer.info/bin/api.pl?lon=${LON}&lat=${LAT}&product=astro&output=json`;
+  const r = await fetch(url);
+  return r.json();
+}
+
+// ── Moon phase (simple calc) ─────────────────────────────────────────────────
+function moonPhase(date) {
+  const known = new Date(2000, 0, 6); // nouvelle lune connue
+  const diff = (date - known) / (1000 * 60 * 60 * 24);
+  const cycle = 29.53059;
+  const phase = ((diff % cycle) + cycle) % cycle;
+  const pct = Math.round((phase / cycle) * 100);
+  let emoji, name;
+  if (phase < 1.85)       { emoji = '🌑'; name = 'Nouvelle lune'; }
+  else if (phase < 7.38)  { emoji = '🌒'; name = 'Premier croissant'; }
+  else if (phase < 9.22)  { emoji = '🌓'; name = 'Premier quartier'; }
+  else if (phase < 14.77) { emoji = '🌔'; name = 'Gibbeuse croissante'; }
+  else if (phase < 16.61) { emoji = '🌕'; name = 'Pleine lune'; }
+  else if (phase < 22.15) { emoji = '🌖'; name = 'Gibbeuse décroissante'; }
+  else if (phase < 23.99) { emoji = '🌗'; name = 'Dernier quartier'; }
+  else if (phase < 29.53) { emoji = '🌘'; name = 'Dernier croissant'; }
+  else                    { emoji = '🌑'; name = 'Nouvelle lune'; }
+  return { emoji, name, pct };
+}
+
+// ── Build 7timer map ─────────────────────────────────────────────────────────
+function build7timerMap(astro) {
+  const map = {};
+  const init = astro.init; // "2026022718"
+  const initDt = new Date(
+    parseInt(init.slice(0,4)), parseInt(init.slice(4,6))-1,
+    parseInt(init.slice(6,8)), parseInt(init.slice(8,10))
+  );
+  astro.dataseries.forEach((entry, i) => {
+    const t = new Date(initDt.getTime() + i * 3 * 3600000);
+    const key = t.toISOString().slice(0,13); // "2026-02-27T18"
+    map[key] = { seeing: entry.seeing || 0, transparency: entry.transparency || 0 };
+  });
+  return map;
+}
+
+// ── Classify ─────────────────────────────────────────────────────────────────
+function cls(val, low, high, invert = false) {
+  if (invert) { // lower is better
+    if (val <= low) return 'cell-good';
+    if (val <= high) return 'cell-ok';
+    return 'cell-bad';
+  } else { // higher is better
+    if (val >= high) return 'cell-good';
+    if (val >= low) return 'cell-ok';
+    return 'cell-bad';
+  }
+}
+
+function isGoodWindow(row) {
+  return row.cloud <= THRESHOLDS.cloud
+    && row.humidity <= THRESHOLDS.humidity
+    && row.wind <= THRESHOLDS.wind
+    && row.seeing >= THRESHOLDS.seeing;
+}
+
+function isNight(hour) {
+  return hour >= 20 || hour <= 5;
+}
+
+// ── Render ───────────────────────────────────────────────────────────────────
+function renderDay(dayIdx) {
+  currentDay = dayIdx;
+  const rows = allData.filter(r => r.dayIdx === dayIdx);
+
+  // Update nav buttons
+  document.querySelectorAll('.days-nav button').forEach((b, i) => {
+    b.classList.toggle('active', i === dayIdx);
+  });
+
+  const tbody = rows.map(r => {
+    const nightClass = isNight(r.hour) ? 'night-hour' : '';
+    const goodClass = isNight(r.hour) && isGoodWindow(r) ? 'good-window' : '';
+    const score = isNight(r.hour) && isGoodWindow(r)
+      ? '<span class="score score-go">✅ GO</span>'
+      : isNight(r.hour) && (r.cloud <= 40 && r.seeing >= 2)
+        ? '<span class="score score-maybe">⚠️ Moyen</span>'
+        : isNight(r.hour)
+          ? '<span class="score score-no">❌</span>'
+          : '<span class="score score-no" style="opacity:0.3">—</span>';
+
+    const nightBadge = isNight(r.hour) ? ' 🌙' : '';
+
+    const seeingVal = r.seeing > 0 ? `${r.seeing}/8` : '—';
+    const seeingCls = r.seeing > 0 ? cls(r.seeing, 3, 5) : 'cell-unknown';
+    const transp = r.transparency > 0 ? `${r.transparency}/8` : '—';
+    const transpCls = r.transparency > 0 ? cls(r.transparency, 3, 5) : 'cell-unknown';
+
+    return `<tr class="${nightClass} ${goodClass}">
+      <td>${r.timeLabel}${nightBadge}</td>
+      <td class="${cls(r.cloud, 20, 10, true)}">${r.cloud}%</td>
+      <td class="${cls(r.humidity, 80, 60, true)}">${r.humidity}%</td>
+      <td class="${cls(r.wind, 20, 10, true)}">${r.wind} km/h</td>
+      <td class="source-group ${seeingCls}">${seeingVal}</td>
+      <td class="${transpCls}">${transp}</td>
+      <td>${score}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('table-container').innerHTML = `
+    <table>
+      <thead>
+        <tr>
+          <th>Heure</th>
+          <th colspan="3">☁️ Open-Meteo</th>
+          <th colspan="2" class="source-header">⭐ 7timer</th>
+          <th>Score</th>
+        </tr>
+        <tr>
+          <th></th>
+          <th>Nuages</th>
+          <th>Humidité</th>
+          <th>Vent</th>
+          <th class="source-header">Seeing</th>
+          <th>Transp.</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>${tbody}</tbody>
+    </table>`;
+}
+
+// ── Main ─────────────────────────────────────────────────────────────────────
+async function main() {
+  try {
+    const [meteo, astro] = await Promise.all([fetchOpenMeteo(), fetch7timer()]);
+    const seeingMap = build7timerMap(astro);
+
+    const times = meteo.hourly.time;
+    const clouds = meteo.hourly.cloudcover;
+    const humidity = meteo.hourly.relativehumidity_2m;
+    const wind = meteo.hourly.windspeed_10m;
+
+    const dayLabels = [];
+
+    times.forEach((tStr, i) => {
+      const t = new Date(tStr);
+      const dayIdx = Math.floor(i / 24);
+      const dateLabel = t.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+      if (!dayLabels[dayIdx]) dayLabels[dayIdx] = dateLabel;
+
+      const key = tStr.slice(0, 13); // "2026-02-27T20"
+      const rounded = tStr.slice(0, 11) + String(Math.floor(t.getHours() / 3) * 3).padStart(2, '0');
+      const astroData = seeingMap[key] || seeingMap[rounded] || { seeing: 0, transparency: 0 };
+
+      allData.push({
+        dayIdx,
+        hour: t.getHours(),
+        timeLabel: `${String(t.getHours()).padStart(2,'0')}h00`,
+        cloud: clouds[i],
+        humidity: humidity[i],
+        wind: Math.round(wind[i]),
+        seeing: astroData.seeing,
+        transparency: astroData.transparency,
+      });
+    });
+
+    // Moon
+    const moon = moonPhase(new Date());
+    document.getElementById('moon-info').innerHTML =
+      `${moon.emoji} <b>${moon.name}</b> (${moon.pct}% du cycle) &nbsp;|&nbsp; 
+       🌑 Nouvelle lune favorable à l'astro &nbsp;|&nbsp;
+       📅 Données sur <b>3 jours</b>`;
+
+    // Nav
+    const nav = document.getElementById('days-nav');
+    dayLabels.forEach((label, i) => {
+      const btn = document.createElement('button');
+      btn.textContent = i === 0 ? `Aujourd'hui — ${label}` : label;
+      btn.onclick = () => renderDay(i);
+      nav.appendChild(btn);
+    });
+
+    renderDay(0);
+
+  } catch (e) {
+    document.getElementById('table-container').innerHTML =
+      `<div class="loader" style="color:#ef9a9a">❌ Erreur : ${e.message}</div>`;
+  }
+}
+
+main();
+</script>
+</body>
+</html>
