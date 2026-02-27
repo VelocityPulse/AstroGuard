@@ -170,7 +170,7 @@ function moonPhase(date) {
 }
 
 async function fetchOpenMeteo() {
-  const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&hourly=cloudcover,relativehumidity_2m,windspeed_10m&timezone=Europe/Paris&forecast_days=3`);
+  const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&hourly=cloudcover,cloudcover_low,cloudcover_mid,cloudcover_high,relativehumidity_2m,windspeed_10m&timezone=Europe/Paris&forecast_days=3`);
   return r.json();
 }
 
@@ -197,7 +197,7 @@ async function main() {
   try {
     const [meteo, astro] = await Promise.all([fetchOpenMeteo(), fetch7timer()]);
     const smap = build7timerMap(astro);
-    const { time, cloudcover: clouds, relativehumidity_2m: humid, windspeed_10m: wind } = meteo.hourly;
+    const { time, cloudcover: clouds, cloudcover_low: cLow, cloudcover_mid: cMid, cloudcover_high: cHigh, relativehumidity_2m: humid, windspeed_10m: wind } = meteo.hourly;
 
     // Moon badge
     const moon = moonPhase(new Date());
@@ -208,12 +208,14 @@ async function main() {
         <thead>
           <tr>
             <th rowspan="2">H</th>
-            <th colspan="3">☁️ Open-Meteo</th>
+            <th colspan="3" class="sep">☁️ Nuages</th>
+            <th colspan="3" class="sep">☁️ Open-Meteo</th>
             <th colspan="2" class="sep">⭐ 7timer</th>
             <th class="sep">✓</th>
           </tr>
           <tr>
-            <th>Nuages</th><th>Humidité</th><th>Vent</th>
+            <th class="sep">Bas</th><th>Moy</th><th>Haut</th>
+            <th class="sep">Total</th><th>Humidité</th><th>Vent</th>
             <th class="sep">Seeing</th><th>Transp.</th>
             <th class="sep"></th>
           </tr>
@@ -231,13 +233,14 @@ async function main() {
       // Day separator
       if (day !== lastDay) {
         const label = t.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-        html += `<tr class="day-header"><td colspan="7">📅 ${label}</td></tr>`;
+        html += `<tr class="day-header"><td colspan="10">📅 ${label}</td></tr>`;
         lastDay = day;
       }
 
       const key     = tStr.slice(0, 13);
       const ad      = smap[key] || { seeing: 0, transparency: 0 };
-      const cl      = clouds[i], hu = humid[i], wi = Math.round(wind[i]);
+      const cl = clouds[i], cl_l = cLow[i], cl_m = cMid[i], cl_h = cHigh[i];
+      const hu = humid[i], wi = Math.round(wind[i]);
       const se      = ad.seeing, tr = ad.transparency;
       const good    = night && isGood(cl, hu, wi, se);
       const rowCls  = night ? 'is-night' : 'is-day';
@@ -255,7 +258,10 @@ async function main() {
 
       html += `<tr class="data-row ${rowCls}">
         <td class="hour">${hourLabel}${nightMark}</td>
-        <td style="${heatCell(tCloud(cl), night)}">${cl}%</td>
+        <td class="sep" style="${heatCell(tCloud(cl_l), night)}">${cl_l}%</td>
+        <td style="${heatCell(tCloud(cl_m), night)}">${cl_m}%</td>
+        <td style="${heatCell(tCloud(cl_h), night)}">${cl_h}%</td>
+        <td class="sep" style="${heatCell(tCloud(cl), night)}">${cl}%</td>
         <td style="${heatCell(tHumid(hu), night)}">${hu}%</td>
         <td style="${heatCell(tWind(wi), night)}">${wi}</td>
         <td class="sep" style="${heatCell(tSeeing(se), night)}">${se > 0 ? se+'/8' : '—'}</td>
