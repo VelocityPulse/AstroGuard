@@ -1,0 +1,17 @@
+location:
+  name: "Rueil-Malmaison"
+  latitude: 48.8773
+  longitude: 2.1890
+
+thresholds:
+  cloud_cover_max: 20       # % max de nuages pour déclencher une alerte
+  seeing_min: 3             # seeing min sur 5 (7timer)
+  humidity_max: 80          # % humidité max
+  wind_max: 20              # km/h vent max
+
+notification:
+  discord_webhook: "https://discord.com/api/webhooks/VOTRE_WEBHOOK_ICI"
+  min_window_hours: 2       # fenêtre minimum en heures pour notifier
+
+schedule:
+  check_interval_hours: 3   # vérification toutes les X heures
