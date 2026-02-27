@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AstroGuard 🔭</title>
+  <title>AstroGuard</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌑</text></svg>">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -33,12 +34,9 @@
       padding: 16px;
     }
 
-    table {
-      border-collapse: collapse;
-      width: fit-content;
-    }
+    table { border-collapse: collapse; width: fit-content; }
 
-    /* Sticky header */
+    /* Sticky main header */
     thead th {
       position: sticky;
       top: 0;
@@ -56,17 +54,32 @@
     thead th:first-child { text-align: left; padding-left: 10px; }
     thead th.sep { border-left: 1px solid #1e1e38; }
 
-    /* Day separator row */
+    /* Day separator */
     tr.day-header td {
       background: #111128;
       color: #7986cb;
       font-size: 0.75rem;
-      padding: 4px 10px;
+      padding: 5px 10px;
       border-top: 2px solid #1a1a2e;
-      border-bottom: 1px solid #1a1a2e;
       font-weight: 600;
       letter-spacing: 0.03em;
     }
+
+    /* Sub-header repeated under each day */
+    tr.sub-header td {
+      background: #0d0d1e;
+      color: #455a64;
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      padding: 3px 8px;
+      text-align: center;
+      border-bottom: 1px solid #1a1a2e;
+      white-space: nowrap;
+      font-weight: 600;
+    }
+    tr.sub-header td:first-child { text-align: left; padding-left: 10px; }
+    tr.sub-header td.sep { border-left: 1px solid #1e1e38; }
 
     /* Data rows */
     tbody tr.data-row { border-bottom: 1px solid rgba(255,255,255,0.03); }
@@ -93,16 +106,16 @@
       border-right: 1px solid #1a1a2e;
       white-space: nowrap;
     }
-    td.hour .moon-mark { color: #3949ab; font-size: 0.6rem; margin-left: 2px; }
 
     td.sep { border-left: 1px solid #1e1e38; }
 
     td.score-cell {
-      border-left: 1px solid #1e1e38;
-      font-size: 0.7rem;
+      border-right: 1px solid #1e1e38;
+      font-size: 0.75rem;
+      text-align: center;
+      padding: 3px 6px;
     }
 
-    /* Row night/day background */
     tr.is-night td { background-color: #090912; }
     tr.is-day   td { background-color: #0c0c1a; opacity: 0.5; }
 
@@ -110,17 +123,13 @@
     .score-maybe { color: #ffd54f; }
     .score-no    { color: #263238; }
 
-    .loader {
-      text-align: center;
-      padding: 60px;
-      color: #3949ab;
-    }
+    .loader { text-align: center; padding: 60px; color: #3949ab; }
   </style>
 </head>
 <body>
 
 <header>
-  <span>🔭</span>
+  <span>🌑</span>
   <h1>AstroGuard <span class="loc">📍 Rueil-Malmaison</span></h1>
   <div class="moon" id="moon-badge">🌙 chargement...</div>
 </header>
@@ -133,31 +142,25 @@
 const LAT = 48.8773, LON = 2.1890;
 const THR = { cloud: 20, humidity: 80, wind: 20, seeing: 3 };
 
-// ── Heatmap couleur vive sur fond sombre ─────────────────────────────────────
-// t=0 (mauvais) → t=1 (excellent)
-// On génère une vraie couleur saturée mais en background très sombre
 function heatCell(t, isNight) {
   if (t === null) return '';
-  const clamped = Math.max(0, Math.min(1, t));
-  // Teinte: 0=rouge(0°) 0.5=orange(30°) 1=vert(120°)
-  const hue = clamped < 0.5 ? clamped * 2 * 30 : 30 + (clamped - 0.5) * 2 * 90;
-  // Saturation forte, luminosité faible (style meteoblue dark)
-  const sat = 70 + clamped * 25;
-  const lig = isNight ? 12 + clamped * 20 : 8 + clamped * 10;
-  const textLig = 55 + clamped * 30;
+  const c = Math.max(0, Math.min(1, t));
+  const hue = c < 0.5 ? c * 2 * 30 : 30 + (c - 0.5) * 2 * 90;
+  const sat = 70 + c * 25;
+  const lig = isNight ? 12 + c * 20 : 8 + c * 10;
+  const textLig = 55 + c * 30;
   return `background:hsl(${Math.round(hue)},${Math.round(sat)}%,${Math.round(lig)}%);color:hsl(${Math.round(hue)},80%,${Math.round(textLig)}%);`;
 }
 
-function tCloud(v)    { return 1 - v / 100; }
-function tHumid(v)    { return 1 - Math.max(0, v - 40) / 60; }
-function tWind(v)     { return 1 - Math.min(v, 40) / 40; }
-function tSeeing(v)   { return v > 0 ? (v - 1) / 7 : null; }
-function tTransp(v)   { return v > 0 ? (v - 1) / 7 : null; }
+function tCloud(v)  { return 1 - v / 100; }
+function tHumid(v)  { return 1 - Math.max(0, v - 40) / 60; }
+function tWind(v)   { return 1 - Math.min(v, 40) / 40; }
+function tSeeing(v) { return v > 0 ? (v - 1) / 7 : null; }
+function tTransp(v) { return v > 0 ? (v - 1) / 7 : null; }
 
 function isNightHour(h) { return h >= 20 || h <= 5; }
-
-function isGood(cloud, humid, wind, seeing) {
-  return cloud <= THR.cloud && humid <= THR.humidity && wind <= THR.wind && seeing >= THR.seeing;
+function isGood(cl, hu, wi, se) {
+  return cl <= THR.cloud && hu <= THR.humidity && wi <= THR.wind && se >= THR.seeing;
 }
 
 function moonPhase(date) {
@@ -165,9 +168,18 @@ function moonPhase(date) {
   const phase = (((date - known) / 86400000) % 29.53059 + 29.53059) % 29.53059;
   const pct = Math.round((phase / 29.53059) * 100);
   const emojis = ['🌑','🌒','🌓','🌔','🌕','🌖','🌗','🌘'];
-  const idx = Math.round(phase / 29.53059 * 7);
-  return { emoji: emojis[idx % 8], pct };
+  return { emoji: emojis[Math.round(phase / 29.53059 * 7) % 8], pct };
 }
+
+// Sub-header HTML (repeated under each day)
+const SUB_HEADER = `
+  <tr class="sub-header">
+    <td>✓</td>
+    <td>H</td>
+    <td class="sep">Bas</td><td>Moy</td><td>Haut</td>
+    <td class="sep">Total</td><td>Humidité</td><td>Vent</td>
+    <td class="sep">Seeing</td><td>Transp.</td>
+  </tr>`;
 
 async function fetchOpenMeteo() {
   const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&hourly=cloudcover,cloudcover_low,cloudcover_mid,cloudcover_high,relativehumidity_2m,windspeed_10m&timezone=Europe/Paris&forecast_days=3`);
@@ -186,8 +198,7 @@ function build7timerMap(astro) {
   astro.dataseries.forEach((e, i) => {
     for (let h = 0; h < 3; h++) {
       const tt = new Date(init.getTime() + (i * 3 + h) * 3600000);
-      const key = tt.toISOString().slice(0, 13);
-      map[key] = { seeing: e.seeing || 0, transparency: e.transparency || 0 };
+      map[tt.toISOString().slice(0, 13)] = { seeing: e.seeing || 0, transparency: e.transparency || 0 };
     }
   });
   return map;
@@ -197,27 +208,27 @@ async function main() {
   try {
     const [meteo, astro] = await Promise.all([fetchOpenMeteo(), fetch7timer()]);
     const smap = build7timerMap(astro);
-    const { time, cloudcover: clouds, cloudcover_low: cLow, cloudcover_mid: cMid, cloudcover_high: cHigh, relativehumidity_2m: humid, windspeed_10m: wind } = meteo.hourly;
+    const { time, cloudcover: clouds, cloudcover_low: cLow, cloudcover_mid: cMid, cloudcover_high: cHigh,
+            relativehumidity_2m: humid, windspeed_10m: wind } = meteo.hourly;
 
-    // Moon badge
     const moon = moonPhase(new Date());
-    document.getElementById('moon-badge').textContent = `${moon.emoji} ${moon.pct}% du cycle · seuils: ☁️≤${THR.cloud}% 💧≤${THR.humidity}% 💨≤${THR.wind}km/h 👁️≥${THR.seeing}/8`;
+    document.getElementById('moon-badge').textContent =
+      `${moon.emoji} ${moon.pct}% du cycle · seuils: ☁️≤${THR.cloud}% 💧≤${THR.humidity}% 💨≤${THR.wind}km/h 👁️≥${THR.seeing}/8`;
 
     let html = `
       <table>
         <thead>
           <tr>
+            <th rowspan="2">✓</th>
             <th rowspan="2">H</th>
             <th colspan="3" class="sep">☁️ Nuages</th>
             <th colspan="3" class="sep">☁️ Open-Meteo</th>
             <th colspan="2" class="sep">⭐ 7timer</th>
-            <th class="sep">✓</th>
           </tr>
           <tr>
             <th class="sep">Bas</th><th>Moy</th><th>Haut</th>
             <th class="sep">Total</th><th>Humidité</th><th>Vent</th>
             <th class="sep">Seeing</th><th>Transp.</th>
-            <th class="sep"></th>
           </tr>
         </thead>
         <tbody>`;
@@ -230,20 +241,20 @@ async function main() {
       const hr  = t.getHours();
       const night = isNightHour(hr);
 
-      // Day separator
       if (day !== lastDay) {
         const label = t.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
         html += `<tr class="day-header"><td colspan="10">📅 ${label}</td></tr>`;
+        html += SUB_HEADER;
         lastDay = day;
       }
 
-      const key     = tStr.slice(0, 13);
-      const ad      = smap[key] || { seeing: 0, transparency: 0 };
-      const cl = clouds[i], cl_l = cLow[i], cl_m = cMid[i], cl_h = cHigh[i];
-      const hu = humid[i], wi = Math.round(wind[i]);
-      const se      = ad.seeing, tr = ad.transparency;
-      const good    = night && isGood(cl, hu, wi, se);
-      const rowCls  = night ? 'is-night' : 'is-day';
+      const key  = tStr.slice(0, 13);
+      const ad   = smap[key] || { seeing: 0, transparency: 0 };
+      const cl   = clouds[i], cl_l = cLow[i], cl_m = cMid[i], cl_h = cHigh[i];
+      const hu   = humid[i],  wi   = Math.round(wind[i]);
+      const se   = ad.seeing, tr   = ad.transparency;
+      const good = night && isGood(cl, hu, wi, se);
+      const rowCls = night ? 'is-night' : 'is-day';
 
       const scoreHtml = !night
         ? `<span class="score-no">·</span>`
@@ -254,9 +265,10 @@ async function main() {
             : `<span class="score-no">✗</span>`;
 
       const hourLabel = String(hr).padStart(2, '0') + 'h';
-      const nightMark = night ? `<span class="moon-mark">🌙</span>` : '';
+      const nightMark = night ? ` <span style="color:#3949ab;font-size:.6rem">🌙</span>` : '';
 
       html += `<tr class="data-row ${rowCls}">
+        <td class="score-cell">${scoreHtml}</td>
         <td class="hour">${hourLabel}${nightMark}</td>
         <td class="sep" style="${heatCell(tCloud(cl_l), night)}">${cl_l}%</td>
         <td style="${heatCell(tCloud(cl_m), night)}">${cl_m}%</td>
@@ -266,7 +278,6 @@ async function main() {
         <td style="${heatCell(tWind(wi), night)}">${wi}</td>
         <td class="sep" style="${heatCell(tSeeing(se), night)}">${se > 0 ? se+'/8' : '—'}</td>
         <td style="${heatCell(tTransp(tr), night)}">${tr > 0 ? tr+'/8' : '—'}</td>
-        <td class="sep score-cell">${scoreHtml}</td>
       </tr>`;
     });
 
