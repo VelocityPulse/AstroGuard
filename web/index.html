@@ -192,7 +192,7 @@ const SUB_HEADER = `
   </tr>`;
 
 async function fetchOpenMeteo() {
-  const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&hourly=cloudcover,cloudcover_low,cloudcover_mid,cloudcover_high,relativehumidity_2m,windspeed_10m&timezone=Europe/Paris&forecast_days=3`);
+  const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&hourly=cloudcover,cloudcover_low,cloudcover_mid,cloudcover_high,relativehumidity_2m,windspeed_10m&timezone=Europe/Paris&forecast_days=8`);
   return r.json();
 }
 
