@@ -6,7 +6,6 @@ Notifie via Discord quand une fenêtre d'observation se présente.
 
 import requests
 import yaml
-import json
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -24,7 +23,7 @@ def fetch_openmeteo(lat, lon):
     url = (
         f"https://api.open-meteo.com/v1/forecast"
         f"?latitude={lat}&longitude={lon}"
-        f"&hourly=cloudcover,relativehumidity_2m,windspeed_10m"
+        f"&hourly=cloudcover,relative_humidity_2m,windspeed_10m"
         f"&timezone=Europe/Paris&forecast_days=3"
     )
     r = requests.get(url, timeout=10)
@@ -54,7 +53,7 @@ def find_windows(config):
 
     times = meteo["hourly"]["time"]
     clouds = meteo["hourly"]["cloudcover"]
-    humidity = meteo["hourly"]["relativehumidity_2m"]
+    humidity = meteo["hourly"]["relative_humidity_2m"]
     wind = meteo["hourly"]["windspeed_10m"]
 
     # Build 7timer seeing map (init_time + 3h steps)
@@ -108,11 +107,7 @@ def find_windows(config):
 
 # ── Discord notification ─────────────────────────────────────────────────────
 
-def format_seeing(s):
-    stars = "⭐" * s + "☆" * (8 - s)
-    return stars
-
-def send_discord(webhook_url, windows):
+def send_discord(webhook_url, windows, location_name=""):
     if not windows:
         return
 
@@ -130,7 +125,7 @@ def send_discord(webhook_url, windows):
         "username": "AstroGuard 🔭",
         "content": (
             f"🌌 **Fenêtre astronomique détectée !**\n"
-            f"📍 Rueil-Malmaison — {first}\n\n"
+            f"📍 {location_name} — {first}\n\n"
             + "\n".join(lines[:8])
             + "\n\n_Prépare le matos ! 🚀_"
         )
@@ -149,7 +144,7 @@ def main():
 
     if windows:
         print(f"🌟 {len(windows)} créneau(x) favorable(s) trouvé(s) !")
-        send_discord(config["notification"]["discord_webhook"], windows)
+        send_discord(config["notification"]["discord_webhook"], windows, config["location"]["name"])
     else:
         print("⛅ Aucune fenêtre favorable pour le moment.")
 
