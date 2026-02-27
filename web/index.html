@@ -28,8 +28,53 @@
       background: #0a0a14;
     }
     header h1  { font-size: 1.1rem; color: #e8eaf6; }
-    header .loc { color: #5c6bc0; font-size: 0.82rem; margin-left: 6px; }
     header .moon { margin-left: auto; font-size: 0.8rem; color: #7986cb; }
+
+    /* ── Location autocomplete ── */
+    .loc-wrap {
+      position: relative;
+      margin-left: 6px;
+    }
+    #loc-input {
+      background: #14142a;
+      border: 1px solid #1e1e3a;
+      border-radius: 6px;
+      color: #5c6bc0;
+      font-size: 0.82rem;
+      padding: 4px 10px;
+      width: 220px;
+      outline: none;
+      font-family: inherit;
+    }
+    #loc-input:focus { border-color: #3949ab; }
+    #loc-dropdown {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      width: 300px;
+      max-height: 260px;
+      overflow-y: auto;
+      background: #111128;
+      border: 1px solid #1e1e3a;
+      border-radius: 8px;
+      margin-top: 4px;
+      z-index: 200;
+      display: none;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+    }
+    #loc-dropdown .loc-item {
+      padding: 8px 12px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      color: #c9d1e0;
+      border-bottom: 1px solid #0f0f1e;
+    }
+    #loc-dropdown .loc-item:hover { background: #1a1a3a; }
+    #loc-dropdown .loc-item .loc-sub {
+      font-size: 0.68rem;
+      color: #546e7a;
+      margin-top: 2px;
+    }
 
     /* ── Layout : sidebar + tableau centrés ── */
     .content-area {
@@ -206,7 +251,12 @@
 <!-- Header -->
 <header>
   <span>🌑</span>
-  <h1>AstroGuard <span class="loc">📍 Rueil-Malmaison</span></h1>
+  <h1>AstroGuard</h1>
+  <div class="loc-wrap">
+    <span style="color:#5c6bc0">📍</span>
+    <input id="loc-input" type="text" placeholder="Rechercher une ville..." value="Rueil-Malmaison" autocomplete="off">
+    <div id="loc-dropdown"></div>
+  </div>
   <div class="moon" id="moon-badge">🌙 chargement...</div>
 </header>
 
@@ -222,7 +272,7 @@
 </div>
 
 <script>
-const LAT = 48.8773, LON = 2.1890;
+let LAT = 48.8773, LON = 2.1890;
 const THR = { cloud: 20 };
 
 function heatCell(t, isNight) {
@@ -246,7 +296,13 @@ function tHumid(v)  { return 1 - Math.max(0, v - 40) / 60; }
 function tWind(v)   { return 1 - Math.min(v, 40) / 40; }
 function tSeeing(v) { return v > 0 ? (v - 1) / 7 : null; }
 function tTransp(v) { return v > 0 ? (v - 1) / 7 : null; }
-function isNightHour(h) { return h >= 20 || h <= 5; }
+// sunMap rempli dynamiquement par main() avec les vrais horaires sunset/sunrise
+let sunMap = {};
+function isNight(day, hour) {
+  const sun = sunMap[day];
+  if (!sun) return hour >= 20 || hour <= 5; // fallback
+  return hour >= Math.ceil(sun.sunset) || hour < Math.floor(sun.sunrise);
+}
 
 function moonIllumination(date) {
   const known = new Date(2000, 0, 6);
@@ -273,7 +329,7 @@ const SUB_HEADER = `
   </tr>`;
 
 async function fetchOpenMeteo() {
-  const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&hourly=cloudcover,cloudcover_low,cloudcover_mid,cloudcover_high,relativehumidity_2m,windspeed_10m&timezone=Europe/Paris&forecast_days=8`);
+  const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&hourly=cloudcover,cloudcover_low,cloudcover_mid,cloudcover_high,relativehumidity_2m,windspeed_10m&daily=sunset,sunrise&timezone=Europe/Paris&forecast_days=8`);
   return r.json();
 }
 async function fetch7timer() {
@@ -308,37 +364,60 @@ async function main() {
     const headerEl = document.querySelector('header');
     if (headerEl) document.documentElement.style.setProperty('--header-h', headerEl.offsetHeight + 'px');
 
-    // ── Pré-calcul stats par jour (heures de nuit uniquement) ──
-    const dayStats = {}; // key = "YYYY-MM-DD"
+    // ── Horaires sunset/sunrise réels par jour ──
+    if (meteo.daily) {
+      meteo.daily.time.forEach((day, i) => {
+        const ss = new Date(meteo.daily.sunset[i]);
+        const sr = new Date(meteo.daily.sunrise[i]);
+        sunMap[day] = {
+          sunset: ss.getHours() + ss.getMinutes() / 60,
+          sunrise: sr.getHours() + sr.getMinutes() / 60
+        };
+      });
+    }
+
+    // ── Pré-calcul stats par NUIT ASTRONOMIQUE (soir J + matin J+1) ──
+    const nightStats = {}; // key = date du soir (YYYY-MM-DD)
     time.forEach((tStr, i) => {
       const t  = new Date(tStr);
       const hr = t.getHours();
-      if (!isNightHour(hr)) return;
-      const day = tStr.slice(0, 10);
-      if (!dayStats[day]) dayStats[day] = { good: 0, total: 0, sumL: 0, sumM: 0, sumH: 0 };
-      const s = dayStats[day];
+      const calDay = tStr.slice(0, 10);
+      if (!isNight(calDay, hr)) return;
+
+      // Heures du matin → rattachées à la nuit de la veille
+      let nightKey;
+      const sun = sunMap[calDay];
+      if (sun && hr < Math.floor(sun.sunrise)) {
+        const prev = new Date(calDay + 'T12:00:00');
+        prev.setDate(prev.getDate() - 1);
+        nightKey = prev.toISOString().slice(0, 10);
+      } else {
+        nightKey = calDay;
+      }
+
+      if (!nightStats[nightKey]) nightStats[nightKey] = { total: 0, sumClouds: 0, sumL: 0, sumM: 0, sumH: 0 };
+      const s = nightStats[nightKey];
       s.total++;
-      if (clouds[i] <= THR.cloud) s.good++;
+      s.sumClouds += clouds[i];
       s.sumL += cLow[i]; s.sumM += cMid[i]; s.sumH += cHigh[i];
     });
-
-    // ── Sidebar ──
     const sbList = document.getElementById('sb-list');
-    const days = Object.keys(dayStats).sort();
-    sbList.innerHTML = days.map(day => {
-      const s = dayStats[day];
-      const ratio = s.total ? s.good / s.total : 0;
-      const pct = Math.round(ratio * 100);
-      const ok = ratio >= 0.5;
+    const nights = Object.keys(nightStats).sort();
+    sbList.innerHTML = nights.map(day => {
+      const s = nightStats[day];
+      const avgClouds = s.total ? s.sumClouds / s.total : 100;
+      const pct = Math.round(100 - avgClouds);
+      const icon = avgClouds <= 20 ? '✅' : avgClouds <= 50 ? '<span style="color:#ffd54f">▲</span>' : '🔴';
       const t = new Date(day + 'T12:00:00');
-      const label = t.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' });
+      const next = new Date(t); next.setDate(next.getDate() + 1);
+      const label = t.toLocaleDateString('fr-FR', { weekday: 'short' }) + '-' + next.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' });
       const avgL = s.total ? Math.round(s.sumL / s.total) : '—';
       const avgM = s.total ? Math.round(s.sumM / s.total) : '—';
       const avgH = s.total ? Math.round(s.sumH / s.total) : '—';
       return `
         <div class="sb-item" data-day="${day}" onclick="scrollToDay('${day}')">
           <div class="sb-top">
-            <span class="sb-icon">${ok ? '✅' : '✗'}</span>
+            <span class="sb-icon">${icon}</span>
             <span class="sb-label">${label}</span>
           </div>
           <div class="sb-pct">${pct}% de la nuit dégagée</div>
@@ -370,10 +449,14 @@ async function main() {
       const t   = new Date(tStr);
       const day = tStr.slice(0, 10);
       const hr  = t.getHours();
-      const night = isNightHour(hr);
+      const night = isNight(day, hr);
 
       if (day !== lastDay) {
-        const label = t.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+        const prev = new Date(t); prev.setDate(prev.getDate() - 1);
+        const wdPrev = prev.toLocaleDateString('fr-FR', { weekday: 'long' });
+        const wdCurr = t.toLocaleDateString('fr-FR', { weekday: 'long' });
+        const datePart = t.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+        const label = `${wdPrev}-${wdCurr} ${datePart}`;
         html += `<tr class="day-header" data-day="${day}" id="day-${day}"><td colspan="11">📅 ${label}</td></tr>`;
         html += SUB_HEADER;
         lastDay = day;
@@ -390,7 +473,7 @@ async function main() {
       const scoreHtml = !night ? `<span class="score-no">·</span>`
         : cl <= THR.cloud  ? `<span class="score-go">✅</span>`
         : cl <= 50         ? `<span class="score-maybe">▲</span>`
-                           : `<span class="score-no">✗</span>`;
+                           : `<span class="score-no">🔴</span>`;
 
       const moonColor = illum < 25 ? '#69f0ae' : illum < 60 ? '#ffd54f' : '#ef9a9a';
       const hourLabel = String(hr).padStart(2,'0') + 'h';
@@ -443,6 +526,62 @@ function scrollToDay(day) {
   const y = el.getBoundingClientRect().top + window.scrollY - 90;
   window.scrollTo({ top: y, behavior: 'smooth' });
 }
+
+// ── Autocomplétion ville ──
+const locInput = document.getElementById('loc-input');
+const locDropdown = document.getElementById('loc-dropdown');
+let debounceTimer = null;
+
+// Restaurer depuis localStorage
+const saved = localStorage.getItem('astroguard-loc');
+if (saved) {
+  try {
+    const s = JSON.parse(saved);
+    LAT = s.lat; LON = s.lon;
+    locInput.value = s.name;
+  } catch(e) {}
+}
+
+locInput.addEventListener('input', () => {
+  clearTimeout(debounceTimer);
+  const q = locInput.value.trim();
+  if (q.length < 2) { locDropdown.style.display = 'none'; return; }
+  debounceTimer = setTimeout(() => {
+    fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=6&language=fr`)
+      .then(r => r.json())
+      .then(data => {
+        if (!data.results || !data.results.length) {
+          locDropdown.style.display = 'none'; return;
+        }
+        locDropdown.innerHTML = data.results.map(r => {
+          const sub = [r.admin1, r.country].filter(Boolean).join(', ');
+          return `<div class="loc-item" data-lat="${r.latitude}" data-lon="${r.longitude}" data-name="${r.name}">
+            ${r.name}<div class="loc-sub">${sub} · ${r.latitude.toFixed(2)}°N ${r.longitude.toFixed(2)}°E</div>
+          </div>`;
+        }).join('');
+        locDropdown.style.display = 'block';
+      })
+      .catch(() => { locDropdown.style.display = 'none'; });
+  }, 300);
+});
+
+locDropdown.addEventListener('click', (e) => {
+  const item = e.target.closest('.loc-item');
+  if (!item) return;
+  LAT = parseFloat(item.dataset.lat);
+  LON = parseFloat(item.dataset.lon);
+  const name = item.dataset.name;
+  locInput.value = name;
+  locDropdown.style.display = 'none';
+  localStorage.setItem('astroguard-loc', JSON.stringify({ lat: LAT, lon: LON, name }));
+  sunMap = {};
+  main();
+});
+
+// Fermer dropdown au clic extérieur
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.loc-wrap')) locDropdown.style.display = 'none';
+});
 
 main();
 </script>
