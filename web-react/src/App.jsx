@@ -27,9 +27,13 @@ export default function App() {
   }, [setLocation]);
 
   const handleDayClick = useCallback((day) => {
-    const el = document.getElementById('day-' + day);
+    // Night key = evening date; core observation hours (minuit→aube) are on the next day
+    const d = new Date(day + 'T12:00:00');
+    d.setDate(d.getDate() + 1);
+    const nextDay = d.toISOString().slice(0, 10);
+    const el = document.getElementById('day-' + nextDay) || document.getElementById('day-' + day);
     if (!el) return;
-    const y = el.getBoundingClientRect().top + window.scrollY - 90;
+    const y = el.getBoundingClientRect().top + window.scrollY - window.innerHeight / 2 + 160;
     window.scrollTo({ top: y, behavior: 'smooth' });
   }, []);
 
