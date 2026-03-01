@@ -2,10 +2,10 @@ import { heatCell, tCloud, tHumid, tWind, tSeeing, tTransp } from '../utils/colo
 import { moonIllumination } from '../utils/astronomy.js';
 
 const THR_CLOUD = 20;
-
 const VGAP = 5;
+const CLOCKS = ['\u{1F55B}','\u{1F550}','\u{1F551}','\u{1F552}','\u{1F553}','\u{1F554}','\u{1F555}','\u{1F556}','\u{1F557}','\u{1F558}','\u{1F559}','\u{1F55A}'];
 
-export default function DataRow({ row, isFirst, isLast }) {
+export default function DataRow({ row, isFirst, isLast, now }) {
   const { tStr, hour, night, clouds, cloudsLow, cloudsMid, cloudsHigh,
           humidity, wind, seeing, transparency } = row;
 
@@ -54,6 +54,10 @@ export default function DataRow({ row, isFirst, isLast }) {
   const moonColor = illum < 25 ? '#69f0ae' : illum < 60 ? '#ffd54f' : '#ef9a9a';
   const hourLabel = String(hour).padStart(2, '0') + 'h';
 
+  const pad = n => String(n).padStart(2, '0');
+  const todayStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+  const isCurrent = tStr.slice(0, 10) === todayStr && hour === now.getHours();
+
   return (
     <tr className={`data-row ${night ? 'is-night' : 'is-day'}`}>
       {/* FIXED LEFT: Score, Hour */}
@@ -61,6 +65,7 @@ export default function DataRow({ row, isFirst, isLast }) {
       <td className="hour">
         {hourLabel}
         {night && <span style={{ color: '#3949ab', fontSize: '.6rem' }}> {'\uD83C\uDF19'}</span>}
+        {isCurrent && <span style={{ fontSize: '.6rem' }}> {CLOCKS[hour % 12]}</span>}
       </td>
       <td className="cloud-gap"></td>
       {/* TOTAL PANEL (solo) */}

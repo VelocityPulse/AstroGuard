@@ -1,4 +1,4 @@
-import { useRef, useEffect, useCallback } from 'react';
+import { useRef, useState, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
 import DaySection from './DaySection.jsx';
 import { useScrollSpy } from '../hooks/useScrollSpy.js';
@@ -30,6 +30,12 @@ const HEADERS = [
 export default function ForecastTable({ dayGroups, onActiveDayChange }) {
   const dayRefs = useRef({});
   const activeDay = useScrollSpy(dayRefs, [dayGroups]);
+  const [now, setNow] = useState(() => new Date());
+
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 5 * 60 * 1000);
+    return () => clearInterval(id);
+  }, []);
 
   useEffect(() => {
     if (activeDay) onActiveDayChange(activeDay);
@@ -53,7 +59,7 @@ export default function ForecastTable({ dayGroups, onActiveDayChange }) {
         </thead>
         <tbody>
           {dayGroups.map(({ day, rows }) => (
-            <DaySection key={day} day={day} rows={rows} ref={setDayRef(day)} />
+            <DaySection key={day} day={day} rows={rows} now={now} ref={setDayRef(day)} />
           ))}
         </tbody>
       </Table>

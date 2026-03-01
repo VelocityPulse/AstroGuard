@@ -29,7 +29,7 @@ function buildDayLabel(day) {
   return `${wdPrev}-${wdCurr} ${datePart}`;
 }
 
-const DaySection = forwardRef(function DaySection({ day, rows }, ref) {
+const DaySection = forwardRef(function DaySection({ day, rows, now }, ref) {
   return (
     <>
       <tr className="day-header" data-day={day} id={`day-${day}`} ref={ref}>
@@ -57,7 +57,7 @@ const DaySection = forwardRef(function DaySection({ day, rows }, ref) {
         <td></td>
       </tr>
       {rows.map((row, i) => (
-        <DataRow key={row.tStr} row={row} isFirst={i === 0} isLast={i === rows.length - 1} />
+        <DataRow key={row.tStr} row={row} isFirst={i === 0} isLast={i === rows.length - 1} now={now} />
       ))}
     </>
   );
