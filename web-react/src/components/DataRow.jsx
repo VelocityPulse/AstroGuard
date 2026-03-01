@@ -109,6 +109,9 @@ export default function DataRow({ row, isFirst, isLast, now }) {
       {/* Score */}
       <td className="score-cell">{scoreHtml}</td>
 
+      {/* Total (synthesis) */}
+      {cloudCell(scoreCloud, night, panelSolo)}
+
       {/* Hour */}
       <td className="hour" style={isAggregated ? { fontSize: '0.75rem' } : undefined}>
         {hourLabel}

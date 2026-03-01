@@ -10,82 +10,61 @@ const Table = styled.table`
 `;
 
 /*
- * 24-column layout (6 spacers, 18 data columns):
+ * 25-column layout (7 spacers, 18 data columns):
  *
  *  0  Score ✓
- *  1  H (hour)
- *  2  spacer
- *  3  AROME total
- *  4  spacer
- *  5  ICON-EU B
- *  6  ICON-EU M
- *  7  ICON-EU H
- *  8  spacer
- *  9  ECMWF B
- * 10  ECMWF M
- * 11  ECMWF H
- * 12  spacer
- * 13  GFS B
- * 14  GFS M
- * 15  GFS H
- * 16  spacer
- * 17  Humid.
- * 18  Vent
- * 19  spacer
- * 20  Seeing
- * 21  Transp.
- * 22  spacer
- * 23  Moon
+ *  1  Synth. (Total composite)
+ *  2  H (hour)
+ *  3  spacer
+ *  4  AROME total
+ *  5  spacer
+ *  6  ICON-EU B
+ *  7  ICON-EU M
+ *  8  ICON-EU H
+ *  9  spacer
+ * 10  ECMWF B
+ * 11  ECMWF M
+ * 12  ECMWF H
+ * 13  spacer
+ * 14  GFS B
+ * 15  GFS M
+ * 16  GFS H
+ * 17  spacer
+ * 18  Humid.
+ * 19  Vent
+ * 20  spacer
+ * 21  Seeing
+ * 22  Transp.
+ * 23  spacer
+ * 24  Moon
  */
 
-/* ---------- Row 1: group titles with colspan ---------- */
-
-const GROUP_HEADERS = [
-  { label: '\u2713', colSpan: 1 },            // 0
-  { label: 'H', colSpan: 1 },                 // 1
-  { spacer: true },                            // 2
-  { label: 'AROME', colSpan: 1 },             // 3
-  { spacer: true },                            // 4
-  { label: 'ICON-EU', colSpan: 3 },           // 5-6-7
-  { spacer: true },                            // 8
-  { label: 'ECMWF', colSpan: 3 },             // 9-10-11
-  { spacer: true },                            // 12
-  { label: 'GFS', colSpan: 3 },               // 13-14-15
-  { spacer: true },                            // 16
-  { label: '', colSpan: 2 },                   // 17-18 (Humid/Wind — no title)
-  { spacer: true },                            // 19
-  { label: '', colSpan: 2 },                   // 20-21 (Seeing/Transp — no title)
-  { spacer: true },                            // 22
-  { label: '\uD83C\uDF19', colSpan: 1 },      // 23
-];
-
-/* ---------- Row 2: sub-column labels ---------- */
-
 const SUB_HEADERS = [
-  { label: '\u2713' },           // 0
-  { label: 'H' },               // 1
-  { spacer: true },              // 2
-  { label: 'Total' },           // 3  AROME
-  { spacer: true },              // 4
-  { label: 'B' },               // 5  ICON-EU
-  { label: 'M' },               // 6
-  { label: 'H' },               // 7
-  { spacer: true },              // 8
-  { label: 'B' },               // 9  ECMWF
-  { label: 'M' },               // 10
-  { label: 'H' },               // 11
-  { spacer: true },              // 12
-  { label: 'B' },               // 13 GFS
-  { label: 'M' },               // 14
-  { label: 'H' },               // 15
-  { spacer: true },              // 16
-  { label: 'Humid.' },          // 17
-  { label: 'Vent' },            // 18
-  { spacer: true },              // 19
-  { label: 'Seeing' },          // 20
-  { label: 'Transp.' },         // 21
-  { spacer: true },              // 22
-  { label: '\uD83C\uDF19' },    // 23
+  { label: '\u2713' },           // 0  Score
+  { label: 'Synth.' },          // 1  Total composite
+  { label: 'H' },               // 2  Hour
+  { spacer: true },              // 3
+  { label: 'Total' },           // 4  AROME
+  { spacer: true },              // 5
+  { label: 'B' },               // 6  ICON-EU
+  { label: 'M' },               // 7
+  { label: 'H' },               // 8
+  { spacer: true },              // 9
+  { label: 'B' },               // 10 ECMWF
+  { label: 'M' },               // 11
+  { label: 'H' },               // 12
+  { spacer: true },              // 13
+  { label: 'B' },               // 14 GFS
+  { label: 'M' },               // 15
+  { label: 'H' },               // 16
+  { spacer: true },              // 17
+  { label: 'Humid.' },          // 18
+  { label: 'Vent' },            // 19
+  { spacer: true },              // 20
+  { label: 'Seeing' },          // 21
+  { label: 'Transp.' },         // 22
+  { spacer: true },              // 23
+  { label: '\uD83C\uDF19' },    // 24
 ];
 
 export default function ForecastTable({ dayGroups, onActiveDayChange }) {
@@ -110,20 +89,6 @@ export default function ForecastTable({ dayGroups, onActiveDayChange }) {
     <div className="main" style={{ overflowX: 'auto' }}>
       <Table>
         <thead>
-          {/* Row 1: group titles */}
-          <tr>
-            {GROUP_HEADERS.map((g, i) => (
-              <th
-                key={i}
-                className={g.spacer ? 'cloud-gap' : ''}
-                colSpan={g.colSpan || 1}
-                style={i === 0 ? { textAlign: 'left', paddingLeft: 10 } : undefined}
-              >
-                {g.spacer ? '' : g.label}
-              </th>
-            ))}
-          </tr>
-          {/* Row 2: sub-column labels */}
           <tr>
             {SUB_HEADERS.map((h, i) => (
               <th

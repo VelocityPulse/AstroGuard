@@ -2,35 +2,19 @@ import { forwardRef } from 'react';
 import DataRow from './DataRow.jsx';
 import { MODELS, SEVEN_TIMER } from '../utils/models.js';
 
-const TOTAL_COLS = 24;
+const TOTAL_COLS = 25;
 
-const SUB_HEADERS = [
-  { label: '\u2713' },
-  { label: 'H' },
-  { spacer: true },
-  { label: 'Total' },
-  { spacer: true },
-  { label: 'B' },
-  { label: 'M' },
-  { label: 'H' },
-  { spacer: true },
-  { label: 'Humid.' },
-  { label: 'Vent' },
-  { spacer: true },
-  { label: 'Seeing' },
-  { label: 'Transp.' },
-  { spacer: true },
-  { label: '\uD83C\uDF19' },
-];
-
-function buildDayLabel(day) {
+function buildDayLabel(day, now) {
   const t = new Date(day + 'T12:00:00');
   const prev = new Date(t);
   prev.setDate(prev.getDate() - 1);
   const wdPrev = prev.toLocaleDateString('fr-FR', { weekday: 'long' });
   const wdCurr = t.toLocaleDateString('fr-FR', { weekday: 'long' });
   const datePart = t.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
-  return `${wdPrev}-${wdCurr} ${datePart}`;
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12, 0, 0);
+  const diff = Math.round((t - today) / (1000 * 60 * 60 * 24));
+  const jLabel = diff === 0 ? 'J' : `J+${diff}`;
+  return `${wdPrev}-${wdCurr} ${datePart} (${jLabel})`;
 }
 
 /** Build the source-header info block for a model */
@@ -62,6 +46,16 @@ function SevenTimerCell() {
   );
 }
 
+function TotalCell() {
+  return (
+    <span style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: 0, lineHeight: 1.3 }}>
+      <span style={{ fontWeight: 700 }}>Synth{'\u00E8'}se</span>
+      <span>Meilleur</span>
+      <span>mod{'\u00E8'}le</span>
+    </span>
+  );
+}
+
 const DaySection = forwardRef(function DaySection({ day, rows, now }, ref) {
   /* Compute hours from the "now" reference for interpolation warnings.
      We use the start of the day as an approximation. */
@@ -72,13 +66,18 @@ const DaySection = forwardRef(function DaySection({ day, rows, now }, ref) {
     <>
       {/* Day header */}
       <tr className="day-header" data-day={day} id={`day-${day}`} ref={ref}>
-        <td colSpan={TOTAL_COLS}>{'\uD83D\uDCC5'} {buildDayLabel(day)}</td>
+        <td colSpan={TOTAL_COLS}>{'\uD83D\uDCC5'} {buildDayLabel(day, now)}</td>
       </tr>
 
       {/* Source info block */}
       <tr className="source-header">
-        {/* Score + Hour (2 cols) */}
+        {/* Score (1 col) */}
         <td></td>
+        {/* Total synthesis (1 col) */}
+        <td style={{ verticalAlign: 'top' }}>
+          <TotalCell />
+        </td>
+        {/* Hour (1 col) */}
         <td></td>
         <td className="cloud-gap"></td>
         {/* AROME (1 col) */}

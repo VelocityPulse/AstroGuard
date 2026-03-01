@@ -19,6 +19,28 @@ function avgNonNull(values) {
   return Math.round(valid.reduce((a, b) => a + b, 0) / valid.length);
 }
 
+/** Relevance weights per model by forecast horizon (hours ahead).
+ *  Higher = more trusted at this range. */
+function scoreWeights(hoursAhead) {
+  //                         AROME  ICON  ECMWF  GFS
+  if (hoursAhead <= 48)  return [5, 2, 2, 1];   // J→J+2  : AROME domine
+  if (hoursAhead <= 120) return [0, 3, 3, 1];   // J+2→J+5: ICON + ECMWF
+  if (hoursAhead <= 240) return [0, 0, 3, 2];   // J+5→J+10: ECMWF + GFS
+  return                        [0, 0, 1, 3];   // J+10+  : GFS domine
+}
+
+/** Weighted average of cloud values by model relevance. */
+function weightedScore(values, weights) {
+  let sum = 0, wSum = 0;
+  for (let k = 0; k < values.length; k++) {
+    if (values[k] !== null && weights[k] > 0) {
+      sum += values[k] * weights[k];
+      wSum += weights[k];
+    }
+  }
+  return wSum > 0 ? Math.round(sum / wSum) : null;
+}
+
 /* ── aggregation blocks (for J+5 .. J+16) ────────────────────── */
 
 const AGG_BLOCKS = [
@@ -150,6 +172,7 @@ export function useWeatherData(lat, lon) {
 
         /* ── determine the first timestamp for J+N offset ── */
         const t0 = new Date(time[0]);
+        const fetchTime = new Date();
 
         /* ── Build hourly rows ── */
         const rows = time.map((tStr, i) => {
@@ -184,8 +207,10 @@ export function useWeatherData(lat, lon) {
           const gH = val(gfsHigh, i);
           const gT = val(gfsTotal, i);
 
-          // Score: AROME if available, else ECMWF total
-          const scoreCloud = aT !== null ? aT : (eT !== null ? eT : null);
+          // Score: weighted average by model relevance at this horizon
+          const iT = val(iconTotal, i);
+          const hoursAhead = Math.max(0, (t - fetchTime) / (1000 * 60 * 60));
+          const scoreCloud = weightedScore([aT, iT, eT, gT], scoreWeights(hoursAhead));
 
           // Humidity & wind: ECMWF preferred, fallback GFS
           const eHum = val(ecmwfHumidity, i);
@@ -292,6 +317,9 @@ export function useWeatherData(lat, lon) {
           const dayDate = new Date(day + 'T12:00:00');
           const diffMs = dayDate - t0;
           const diffDays = diffMs / (1000 * 60 * 60 * 24);
+
+          // Skip days beyond J+11
+          if (diffDays > 11) return;
 
           let finalRows;
           if (diffDays >= 5) {
