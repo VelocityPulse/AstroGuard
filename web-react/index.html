@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AstroGuard</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌑</text></svg>">
+</head>
+<body>
+  <div id="root"></div>
+  <script>
+    // Prefetch APIs pendant que le bundle React charge
+    (function() {
+      var loc;
+      try { loc = JSON.parse(localStorage.getItem('astroguard-loc')); } catch(e) {}
+      var lat = (loc && loc.lat) || 48.8773;
+      var lon = (loc && loc.lon) || 2.1890;
+      window.__PREFETCH__ = {
+        lat: lat, lon: lon,
+        meteo: fetch('https://api.open-meteo.com/v1/forecast?latitude='+lat+'&longitude='+lon+'&hourly=cloudcover,cloudcover_low,cloudcover_mid,cloudcover_high,relativehumidity_2m,windspeed_10m&daily=sunset,sunrise&timezone=Europe/Paris&forecast_days=8').then(function(r){return r.json()}),
+        astro: fetch('https://www.7timer.info/bin/api.pl?lon='+lon+'&lat='+lat+'&product=astro&output=json').then(function(r){return r.json()})
+      };
+    })();
+  </script>
+  <script type="module" src="/src/main.jsx"></script>
+</body>
+</html>
