@@ -80,9 +80,11 @@ export default function DataRow({ row, isFirst, isLast, now }) {
       <td style={{ ...heatCell(tHumid(humidity), night), ...panelL }}>{humidity}%</td>
       <td style={{ ...heatCell(tWind(wind), night), ...panelR }}>{wind}</td>
       <td className="cloud-gap"></td>
-      {/* FIXED RIGHT: Seeing, Transp, Moon */}
-      <td style={heatCell(tSeeing(seeing), night)}>{seeing > 0 ? seeing + '/8' : '\u2014'}</td>
-      <td style={heatCell(tTransp(transparency), night)}>{transparency > 0 ? transparency + '/8' : '\u2014'}</td>
+      {/* SEEING/TRANSP PANEL */}
+      <td style={{ ...heatCell(tSeeing(seeing), night), ...panelL }}>{seeing > 0 ? seeing + '/8' : '\u2014'}</td>
+      <td style={{ ...heatCell(tTransp(transparency), night), ...panelR }}>{transparency > 0 ? transparency + '/8' : '\u2014'}</td>
+      <td className="cloud-gap"></td>
+      {/* MOON */}
       <td style={{ color: moonColor, background: '#090912' }}>{night ? illum + '%' : '\u2014'}</td>
     </tr>
   );

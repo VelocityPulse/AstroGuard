@@ -24,6 +24,7 @@ const HEADERS = [
   { spacer: true },
   { label: 'Seeing' },
   { label: 'Transp.' },
+  { spacer: true },
   { label: '\uD83C\uDF19' },
 ];
 
