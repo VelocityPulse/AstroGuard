@@ -121,7 +121,12 @@ export function useWeatherData(lat, lon) {
         const time = h.time;
 
         /* ── extract per-model arrays from the API response ── */
-        const aromeTotal = h['cloud_cover_meteofrance_arome_france_hd'] || null;
+        const aromeLow  = h['cloud_cover_low_meteofrance_arome_france_hd'] || null;
+        const aromeMid  = h['cloud_cover_mid_meteofrance_arome_france_hd'] || null;
+        const aromeHigh = h['cloud_cover_high_meteofrance_arome_france_hd'] || null;
+        // The forecast multi-model endpoint returns null for AROME total;
+        // compute it from max(low, mid, high) as a fallback.
+        const aromeRawTotal = h['cloud_cover_meteofrance_arome_france_hd'] || null;
 
         const iconTotal = h['cloud_cover_icon_eu'] || null;
         const iconLow   = h['cloud_cover_low_icon_eu'] || null;
@@ -155,7 +160,15 @@ export function useWeatherData(lat, lon) {
           const key = tStr.slice(0, 13);
           const astroData = smap[key] || { seeing: 0, transparency: 0 };
 
-          const aT = val(aromeTotal, i);
+          // AROME total: use raw if available, else max(low, mid, high)
+          const aRaw = val(aromeRawTotal, i);
+          const aL = val(aromeLow, i);
+          const aM = val(aromeMid, i);
+          const aH = val(aromeHigh, i);
+          const aT = aRaw !== null ? aRaw
+            : (aL !== null || aM !== null || aH !== null)
+              ? Math.max(aL || 0, aM || 0, aH || 0)
+              : null;
 
           const iL = val(iconLow, i);
           const iM = val(iconMid, i);
@@ -240,7 +253,14 @@ export function useWeatherData(lat, lon) {
           s.total++;
 
           // Cloud total: AROME > ECMWF > GFS
-          const aT = val(aromeTotal, i);
+          const aRaw2 = val(aromeRawTotal, i);
+          const aL2 = val(aromeLow, i);
+          const aM2 = val(aromeMid, i);
+          const aH2 = val(aromeHigh, i);
+          const aT = aRaw2 !== null ? aRaw2
+            : (aL2 !== null || aM2 !== null || aH2 !== null)
+              ? Math.max(aL2 || 0, aM2 || 0, aH2 || 0)
+              : null;
           const eT = val(ecmwfTotal, i);
           const gT = val(gfsTotal, i);
           const cloudVal = aT !== null ? aT : (eT !== null ? eT : (gT !== null ? gT : 0));
