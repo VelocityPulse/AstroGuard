@@ -13,7 +13,7 @@ function buildDayLabel(day, now) {
   const datePart = t.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12, 0, 0);
   const diff = Math.round((t - today) / (1000 * 60 * 60 * 24));
-  const jLabel = diff === 0 ? 'J' : `J+${diff}`;
+  const jLabel = diff === 0 ? 'J' : diff > 0 ? `J+${diff}` : `J${diff}`;
   return `${wdPrev}-${wdCurr} ${datePart} (${jLabel})`;
 }
 
