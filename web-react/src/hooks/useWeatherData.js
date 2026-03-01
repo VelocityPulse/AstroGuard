@@ -255,8 +255,10 @@ export function useWeatherData(lat, lon) {
 
         /* ── Night stats ── */
         const nightStats = {};
+        const maxMs = 11 * 24 * 60 * 60 * 1000; // J+11 limit
         time.forEach((tStr, i) => {
           const t = new Date(tStr);
+          if (t - fetchTime > maxMs) return; // skip beyond J+11
           const hr = t.getHours();
           const calDay = tStr.slice(0, 10);
           if (!isNight(sunMap, calDay, hr)) return;
@@ -277,7 +279,7 @@ export function useWeatherData(lat, lon) {
           const s = nightStats[nightKey];
           s.total++;
 
-          // Cloud total: AROME > ECMWF > GFS
+          // Cloud total: weighted average (same logic as scoreCloud)
           const aRaw2 = val(aromeRawTotal, i);
           const aL2 = val(aromeLow, i);
           const aM2 = val(aromeMid, i);
@@ -286,21 +288,29 @@ export function useWeatherData(lat, lon) {
             : (aL2 !== null || aM2 !== null || aH2 !== null)
               ? Math.max(aL2 || 0, aM2 || 0, aH2 || 0)
               : null;
+          const iT = val(iconTotal, i);
           const eT = val(ecmwfTotal, i);
           const gT = val(gfsTotal, i);
-          const cloudVal = aT !== null ? aT : (eT !== null ? eT : (gT !== null ? gT : 0));
-          s.sumClouds += cloudVal;
+          const hoursAhead = Math.max(0, (t - fetchTime) / (1000 * 60 * 60));
+          const cloudVal = weightedScore([aT, iT, eT, gT], scoreWeights(hoursAhead));
+          s.sumClouds += cloudVal !== null ? cloudVal : 0;
 
-          // Layers: ECMWF > GFS
+          // Layers: weighted average per layer
+          const w = scoreWeights(hoursAhead);
+          const iL = val(iconLow, i);
+          const iM = val(iconMid, i);
+          const iH = val(iconHigh, i);
           const eL = val(ecmwfLow, i);
           const eM = val(ecmwfMid, i);
           const eH = val(ecmwfHigh, i);
           const gL = val(gfsLow, i);
           const gM = val(gfsMid, i);
           const gH = val(gfsHigh, i);
-          s.sumL += (eL !== null ? eL : (gL !== null ? gL : 0));
-          s.sumM += (eM !== null ? eM : (gM !== null ? gM : 0));
-          s.sumH += (eH !== null ? eH : (gH !== null ? gH : 0));
+          // AROME has no layers, use weight 0 for layer averages
+          const layerW = [0, w[1], w[2], w[3]];
+          s.sumL += weightedScore([null, iL, eL, gL], layerW) || 0;
+          s.sumM += weightedScore([null, iM, eM, gM], layerW) || 0;
+          s.sumH += weightedScore([null, iH, eH, gH], layerW) || 0;
         });
 
         /* ── Group rows by day, apply aggregation for J+5+ ── */
