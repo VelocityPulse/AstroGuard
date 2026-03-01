@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import GlobalStyle from './GlobalStyle.js';
 import Header from './components/Header.jsx';
+import ModelDescriptions from './components/ModelDescriptions.jsx';
 import Sidebar from './components/Sidebar.jsx';
 import ForecastTable from './components/ForecastTable.jsx';
 import Loader from './components/Loader.jsx';
@@ -45,6 +46,8 @@ export default function App() {
       {loading || error ? (
         <Loader error={error} />
       ) : (
+        <>
+        <ModelDescriptions />
         <div className="content-area">
           <Sidebar
             nightStats={data.nightStats}
@@ -56,6 +59,7 @@ export default function App() {
             onActiveDayChange={handleActiveDayChange}
           />
         </div>
+        </>
       )}
     </>
   );

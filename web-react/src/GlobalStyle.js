@@ -124,7 +124,19 @@ const GlobalStyle = createGlobalStyle`
     padding: 16px;
   }
 
-  .main { flex-shrink: 0; }
+  .main { flex-shrink: 0; overflow-x: auto; }
+
+  /* Aggregated rows (3-4h blocks for J+5+) */
+  .data-row.is-aggregated .hour {
+    font-size: 0.75rem;
+  }
+
+  /* Interpolation warning in source-header */
+  .source-header .interpolation-warning {
+    color: #ffd54f;
+    font-size: 0.6rem;
+    font-weight: 600;
+  }
 `;
 
 export default GlobalStyle;

@@ -1,0 +1,53 @@
+export const MODELS = [
+  {
+    key: 'arome',
+    apiPrefix: 'meteofrance_arome_france_hd',
+    label: 'AROME',
+    resolution: '1.5 km',
+    range: 'J\u2192J+2',
+    updateFreq: 'm\u00E0j 3h',
+    maxHours: 42,
+    hasLayers: false,
+    interpolatedAfterH: null,
+  },
+  {
+    key: 'icon',
+    apiPrefix: 'icon_eu',
+    label: 'ICON-EU',
+    resolution: '7 km',
+    range: 'J\u2192J+5',
+    updateFreq: 'm\u00E0j 3h',
+    maxHours: 120,
+    hasLayers: true,
+    interpolatedAfterH: null,
+  },
+  {
+    key: 'ecmwf',
+    apiPrefix: 'ecmwf_ifs',
+    label: 'ECMWF',
+    resolution: '9 km',
+    range: 'J\u2192J+10',
+    updateFreq: 'm\u00E0j 6h',
+    maxHours: 240,
+    hasLayers: true,
+    interpolatedAfterH: 90,
+  },
+  {
+    key: 'gfs',
+    apiPrefix: 'gfs_global',
+    label: 'GFS',
+    resolution: '13 km',
+    range: 'J\u2192J+16',
+    updateFreq: 'm\u00E0j 6h',
+    maxHours: 384,
+    hasLayers: true,
+    interpolatedAfterH: 120,
+  },
+];
+
+export const SEVEN_TIMER = {
+  label: '7Timer',
+  resolution: '~20 km',
+  range: 'J\u2192J+3',
+  updateFreq: 'm\u00E0j 6h',
+};

@@ -1,6 +1,9 @@
 export async function fetchOpenMeteo(lat, lon) {
   const r = await fetch(
-    `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=cloudcover,cloudcover_low,cloudcover_mid,cloudcover_high,relativehumidity_2m,windspeed_10m&daily=sunset,sunrise&timezone=Europe/Paris&forecast_days=8`
+    `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}`
+    + `&hourly=cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,relative_humidity_2m,wind_speed_10m`
+    + `&daily=sunset,sunrise&timezone=Europe/Paris&forecast_days=16`
+    + `&models=meteofrance_arome_france_hd,icon_eu,ecmwf_ifs,gfs_global`
   );
   return r.json();
 }

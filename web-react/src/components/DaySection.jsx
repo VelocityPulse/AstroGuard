@@ -1,22 +1,26 @@
 import { forwardRef } from 'react';
 import DataRow from './DataRow.jsx';
+import { MODELS, SEVEN_TIMER } from '../utils/models.js';
+
+const TOTAL_COLS = 24;
 
 const SUB_HEADERS = [
-  { label: '\u2713', sep: false },
-  { label: 'H', sep: false },
-  { label: '', spacer: true },
-  { label: 'Total', sep: false },
-  { label: '', spacer: true },
-  { label: 'Bas', sep: false },
-  { label: 'Moy', sep: false },
-  { label: 'Haut', sep: false },
-  { label: '', spacer: true },
-  { label: 'Humidit\u00E9', sep: false },
-  { label: 'Vent', sep: false },
-  { label: '', spacer: true },
-  { label: 'Seeing', sep: false },
-  { label: 'Transp.', sep: false },
-  { label: '\uD83C\uDF19', sep: false },
+  { label: '\u2713' },
+  { label: 'H' },
+  { spacer: true },
+  { label: 'Total' },
+  { spacer: true },
+  { label: 'B' },
+  { label: 'M' },
+  { label: 'H' },
+  { spacer: true },
+  { label: 'Humid.' },
+  { label: 'Vent' },
+  { spacer: true },
+  { label: 'Seeing' },
+  { label: 'Transp.' },
+  { spacer: true },
+  { label: '\uD83C\uDF19' },
 ];
 
 function buildDayLabel(day) {
@@ -29,35 +33,89 @@ function buildDayLabel(day) {
   return `${wdPrev}-${wdCurr} ${datePart}`;
 }
 
+/** Build the source-header info block for a model */
+function SourceCell({ model, hoursFromStart }) {
+  const isInterpolated =
+    model.interpolatedAfterH !== null && hoursFromStart > model.interpolatedAfterH;
+
+  return (
+    <span style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: 0, lineHeight: 1.3 }}>
+      <span style={{ fontWeight: 700 }}>{model.label}</span>
+      <span>{model.resolution}</span>
+      <span>{model.range}</span>
+      <span>{model.updateFreq}</span>
+      {isInterpolated && (
+        <span style={{ color: '#ffd54f', fontWeight: 600 }}>{'\u26A0'} interpol{'\u00E9'}</span>
+      )}
+    </span>
+  );
+}
+
+function SevenTimerCell() {
+  return (
+    <span style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: 0, lineHeight: 1.3 }}>
+      <span style={{ fontWeight: 700 }}>{SEVEN_TIMER.label}</span>
+      <span>{SEVEN_TIMER.resolution}</span>
+      <span>{SEVEN_TIMER.range}</span>
+      <span>{SEVEN_TIMER.updateFreq}</span>
+    </span>
+  );
+}
+
 const DaySection = forwardRef(function DaySection({ day, rows, now }, ref) {
+  /* Compute hours from the "now" reference for interpolation warnings.
+     We use the start of the day as an approximation. */
+  const dayStart = new Date(day + 'T00:00:00');
+  const hoursFromNow = Math.max(0, (dayStart - now) / (1000 * 60 * 60));
+
   return (
     <>
+      {/* Day header */}
       <tr className="day-header" data-day={day} id={`day-${day}`} ref={ref}>
-        <td colSpan={15}>{'\uD83D\uDCC5'} {buildDayLabel(day)}</td>
+        <td colSpan={TOTAL_COLS}>{'\uD83D\uDCC5'} {buildDayLabel(day)}</td>
       </tr>
-      <tr className="sub-header">
-        {SUB_HEADERS.map((h, i) => (
-          <td key={i} className={h.spacer ? 'cloud-gap' : (h.sep ? 'sep' : '')}
-              style={i === 0 ? { textAlign: 'left', paddingLeft: 10 } : undefined}>
-            {h.label}
-          </td>
-        ))}
-      </tr>
+
+      {/* Source info block */}
       <tr className="source-header">
+        {/* Score + Hour (2 cols) */}
         <td></td>
         <td></td>
         <td className="cloud-gap"></td>
-        <td></td>
+        {/* AROME (1 col) */}
+        <td style={{ verticalAlign: 'top' }}>
+          <SourceCell model={MODELS[0]} hoursFromStart={hoursFromNow} />
+        </td>
         <td className="cloud-gap"></td>
-        <td colSpan={3}>OpenMeteo</td>
+        {/* ICON-EU (3 cols) */}
+        <td colSpan={3} style={{ verticalAlign: 'top' }}>
+          <SourceCell model={MODELS[1]} hoursFromStart={hoursFromNow} />
+        </td>
         <td className="cloud-gap"></td>
-        <td colSpan={2}>OpenMeteo</td>
+        {/* ECMWF (3 cols) */}
+        <td colSpan={3} style={{ verticalAlign: 'top' }}>
+          <SourceCell model={MODELS[2]} hoursFromStart={hoursFromNow} />
+        </td>
         <td className="cloud-gap"></td>
-        <td colSpan={2}>7Timer</td>
+        {/* GFS (3 cols) */}
+        <td colSpan={3} style={{ verticalAlign: 'top' }}>
+          <SourceCell model={MODELS[3]} hoursFromStart={hoursFromNow} />
+        </td>
+        <td className="cloud-gap"></td>
+        {/* Humid + Vent (2 cols) */}
+        <td colSpan={2}></td>
+        <td className="cloud-gap"></td>
+        {/* Seeing + Transp (2 cols) */}
+        <td colSpan={2} style={{ verticalAlign: 'top' }}>
+          <SevenTimerCell />
+        </td>
+        <td className="cloud-gap"></td>
+        {/* Moon (1 col) */}
         <td></td>
       </tr>
+
+      {/* Data rows */}
       {rows.map((row, i) => (
-        <DataRow key={row.tStr} row={row} isFirst={i === 0} isLast={i === rows.length - 1} now={now} />
+        <DataRow key={row.tStr + (row.blockLabel || '')} row={row} isFirst={i === 0} isLast={i === rows.length - 1} now={now} />
       ))}
     </>
   );
