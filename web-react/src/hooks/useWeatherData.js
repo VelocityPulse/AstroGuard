@@ -322,6 +322,7 @@ export function useWeatherData(lat, lon) {
 
         const sortedDays = Object.keys(dayMap).sort();
         const dayGroups = [];
+        const cutoff = new Date(fetchTime.getTime() - 24 * 60 * 60 * 1000);
 
         sortedDays.forEach((day) => {
           const dayDate = new Date(day + 'T12:00:00');
@@ -339,8 +340,12 @@ export function useWeatherData(lat, lon) {
             finalRows = dayMap[day];
           }
 
+          // Filter out rows older than 24h
+          finalRows = finalRows.filter(r => new Date(r.tStr) >= cutoff);
+
           if (finalRows.length > 0) {
-            dayGroups.push({ day, rows: finalRows });
+            const isTruncated = new Date(finalRows[0].tStr).getHours() !== 0;
+            dayGroups.push({ day, rows: finalRows, isTruncated });
           }
         });
 

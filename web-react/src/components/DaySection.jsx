@@ -4,7 +4,7 @@ import { MODELS, SEVEN_TIMER } from '../utils/models.js';
 
 const TOTAL_COLS = 25;
 
-function buildDayLabel(day, now) {
+function buildDayLabel(day, now, isTruncated) {
   const t = new Date(day + 'T12:00:00');
   const prev = new Date(t);
   prev.setDate(prev.getDate() - 1);
@@ -14,6 +14,7 @@ function buildDayLabel(day, now) {
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12, 0, 0);
   const diff = Math.round((t - today) / (1000 * 60 * 60 * 24));
   const jLabel = diff === 0 ? 'J' : diff > 0 ? `J+${diff}` : `J${diff}`;
+  if (isTruncated) return `${wdCurr} ${datePart} (${jLabel})`;
   return `${wdPrev}-${wdCurr} ${datePart} (${jLabel})`;
 }
 
@@ -56,7 +57,7 @@ function TotalCell() {
   );
 }
 
-const DaySection = forwardRef(function DaySection({ day, rows, now }, ref) {
+const DaySection = forwardRef(function DaySection({ day, rows, now, isTruncated }, ref) {
   /* Compute hours from the "now" reference for interpolation warnings.
      We use the start of the day as an approximation. */
   const dayStart = new Date(day + 'T00:00:00');
@@ -66,7 +67,7 @@ const DaySection = forwardRef(function DaySection({ day, rows, now }, ref) {
     <>
       {/* Day header */}
       <tr className="day-header" data-day={day} id={`day-${day}`} ref={ref}>
-        <td colSpan={TOTAL_COLS}>{'\uD83D\uDCC5'} {buildDayLabel(day, now)}</td>
+        <td colSpan={TOTAL_COLS}>{'\uD83D\uDCC5'} {buildDayLabel(day, now, isTruncated)}</td>
       </tr>
 
       {/* Source info block */}

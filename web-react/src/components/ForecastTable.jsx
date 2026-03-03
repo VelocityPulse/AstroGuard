@@ -109,8 +109,8 @@ export default function ForecastTable({ dayGroups, onActiveDayChange }) {
           </tr>
         </thead>
         <tbody>
-          {dayGroups.map(({ day, rows }) => (
-            <DaySection key={day} day={day} rows={rows} now={now} ref={setDayRef(day)} />
+          {dayGroups.map(({ day, rows, isTruncated }) => (
+            <DaySection key={day} day={day} rows={rows} now={now} isTruncated={isTruncated} ref={setDayRef(day)} />
           ))}
         </tbody>
       </Table>
