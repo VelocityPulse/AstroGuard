@@ -6,6 +6,7 @@
  * computes per-night stats for the next 8 nights, outputs JSON to stdout.
  *
  * Usage:  node scripts/astro-check.mjs [--lat <lat>] [--lon <lon>] [--name <name>]
+ *         node scripts/astro-check.mjs [--city <city name>]
  * Default: Rueil-Malmaison (48.8773, 2.1890)
  * No dependencies beyond Node 18+ (native fetch).
  */
@@ -21,9 +22,32 @@ function getArg(name, fallback) {
   const i = args.indexOf(name);
   return i !== -1 && args[i + 1] ? args[i + 1] : fallback;
 }
-const LAT  = parseFloat(getArg('--lat',  '48.8773'));
-const LON  = parseFloat(getArg('--lon',  '2.1890'));
-const NAME = getArg('--name', 'Rueil-Malmaison');
+
+// ── Geocoding via Nominatim ────────────────────────────────────────
+async function geocode(cityName) {
+  const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(cityName)}&format=json&limit=1`;
+  const res = await fetch(url, { headers: { 'User-Agent': 'astro-check/1.0' } });
+  const data = await res.json();
+  if (!data.length) throw new Error(`City not found: ${cityName}`);
+  return {
+    lat: parseFloat(data[0].lat),
+    lon: parseFloat(data[0].lon),
+    name: data[0].display_name.split(',')[0].trim(),
+  };
+}
+
+const cityArg = getArg('--city', null);
+let LAT, LON, NAME;
+if (cityArg) {
+  const geo = await geocode(cityArg);
+  LAT  = geo.lat;
+  LON  = geo.lon;
+  NAME = geo.name;
+} else {
+  LAT  = parseFloat(getArg('--lat',  '48.8773'));
+  LON  = parseFloat(getArg('--lon',  '2.1890'));
+  NAME = getArg('--name', 'Rueil-Malmaison');
+}
 
 const NIGHT_HOURS = new Set([20, 21, 22, 23, 0, 1, 2, 3, 4, 5]);
 
