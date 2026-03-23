@@ -118,6 +118,11 @@ export default function DataRow({ row, isFirst, isLast, now }) {
         {night && !isAggregated && <span style={{ color: '#3949ab', fontSize: '.6rem' }}> {'\uD83C\uDF19'}</span>}
         {isCurrent && <span style={{ fontSize: '.6rem' }}> {CLOCKS[hour % 12]}</span>}
       </td>
+
+      {/* Moon — après H */}
+      <td style={{ color: moonColor, background: '#090912' }}>
+        {night ? illum + '%' : '\u2014'}
+      </td>
       <td className="cloud-gap"></td>
 
       {/* AROME — total only (panelSolo) */}
