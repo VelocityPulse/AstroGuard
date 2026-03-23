@@ -43,8 +43,9 @@ const SUB_HEADERS = [
   { label: '\u2713' },           // 0  Score
   { label: 'Synth.' },          // 1  Total composite
   { label: 'H' },               // 2  Hour
-  { spacer: true },              // 3
-  { label: 'Total' },           // 4  AROME
+  { label: '\uD83C\uDF19' },    // 3  Moon
+  { spacer: true },              // 4
+  { label: 'Total' },           // 5  AROME
   { spacer: true },              // 5
   { label: 'B' },               // 6  ICON-EU
   { label: 'M' },               // 7
@@ -63,8 +64,6 @@ const SUB_HEADERS = [
   { spacer: true },              // 20
   { label: 'Seeing' },          // 21
   { label: 'Transp.' },         // 22
-  { spacer: true },              // 23
-  { label: '\uD83C\uDF19' },    // 24
 ];
 
 export default function ForecastTable({ dayGroups, onActiveDayChange }) {

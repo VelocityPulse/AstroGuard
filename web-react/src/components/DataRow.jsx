@@ -156,10 +156,6 @@ export default function DataRow({ row, isFirst, isLast, now }) {
       </td>
       <td className="cloud-gap"></td>
 
-      {/* Moon */}
-      <td style={{ color: moonColor, background: '#090912' }}>
-        {night ? illum + '%' : '\u2014'}
-      </td>
     </tr>
   );
 }
